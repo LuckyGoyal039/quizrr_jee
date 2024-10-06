@@ -2,12 +2,12 @@ package user
 
 import (
 	"context"
-	database "go-project/db"
 	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
+	database "github.com/quizrr/db"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -132,7 +132,6 @@ func Login(c *fiber.Ctx) error {
 		},
 		"token": token,
 	})
-
 }
 
 func generateJWTToken(user UserDetails) (string, error) {
