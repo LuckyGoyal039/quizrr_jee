@@ -115,6 +115,16 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
+	// Update the lastlogin timestamp
+	updateQuery := `UPDATE users SET lastlogin = NOW() WHERE id = $1`
+	_, err = database.DB.Exec(context.Background(), updateQuery, user.ID)
+	if err != nil {
+		log.Println("Failed to update last login time:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Could not update last login time",
+		})
+	}
+
 	token, err := generateJWTToken(user)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

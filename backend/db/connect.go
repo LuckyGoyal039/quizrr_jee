@@ -52,16 +52,19 @@ func createUserTable() {
 		CREATE TABLE IF NOT EXISTS users (
 			id SERIAL PRIMARY KEY,
 			username VARCHAR(100) NOT NULL UNIQUE,
+			displayname VARCHAR(100),
 			email VARCHAR(100) NOT NULL UNIQUE,
 			password TEXT NOT NULL,
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+			isverified BOOLEAN DEFAULT FALSE,
+			lastlogin TIMESTAMP,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);
 	`
-
 	_, err := DB.Exec(context.Background(), query)
 	if err != nil {
 		log.Fatalf("Failed to create 'users' table: %v", err)
 	}
 
-	fmt.Println("'users' table created or already exists.")
+	fmt.Println("'users' table created successfully.")
 }
