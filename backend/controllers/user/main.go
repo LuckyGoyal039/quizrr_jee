@@ -48,6 +48,16 @@ type ProfileData struct {
 	PinCode     sql.NullString `json:"pin_code"`
 	Standard    sql.NullString `json:"standard"`
 	Board       sql.NullString `json:"board"`
+	OnBoarding  sql.NullBool   `json:"onboarding"`
+}
+
+type Notebook struct {
+	ID        uint           `json:"id"`
+	UserID    uint           `json:"user_id"`
+	Topic     sql.NullString `json:"topic"`
+	Content   sql.NullString `json:"content"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
 }
 
 var jwtSecret = []byte("your_secret_key")
@@ -429,7 +439,8 @@ func SetPortfolioData(c *fiber.Ctx) error {
 			city,
 			pincode,
 			standard,
-			board
+			board,
+			onboarding
 		FROM profiles
 		WHERE id = $1
 	`
@@ -443,10 +454,97 @@ func SetPortfolioData(c *fiber.Ctx) error {
 		&profileData.PinCode,
 		&profileData.Standard,
 		&profileData.Board,
+		&profileData.OnBoarding,
 	); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching updated profile data"})
 	}
 
 	// Return the updated profile data as a JSON response
 	return c.JSON(profileData)
+}
+
+func GetNotesList(c *fiber.Ctx) error {
+	// Extract the token from the Authorization header
+	tokenStr := c.Get("Authorization")
+	if len(tokenStr) < 7 || tokenStr[:7] != "Bearer " {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing or invalid token"})
+	}
+	tokenStr = tokenStr[7:] // Skip "Bearer "
+
+	// Parse and validate the token
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte("your_secret_key"), nil // Use your actual secret key
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Extract claims from the token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token claims"})
+	}
+
+	// Safely extract the user ID
+	userIDInterface, exists := claims["id"]
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
+	}
+
+	// Assert userIDInterface to float64 and convert to uint
+	userIDFloat, ok := userIDInterface.(float64)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID type"})
+	}
+	userID := uint(userIDFloat)
+
+	// Query to fetch notebooks for the user
+	query := `
+		SELECT 
+			id, 
+			user_id, 
+			topic, 
+			content, 
+			created_at, 
+			updated_at 
+		FROM notebooks 
+		WHERE user_id = $1
+	`
+
+	// Execute the query
+	rows, err := database.DB.Query(context.Background(), query, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve notebooks"})
+	}
+	defer rows.Close() // Ensure rows are closed after processing
+
+	var notebooks []Notebook
+
+	// Iterate over the rows and scan the data into Notebook struct
+	for rows.Next() {
+		var notebook Notebook
+		if err := rows.Scan(
+			&notebook.ID,
+			&notebook.UserID,
+			&notebook.Topic,
+			&notebook.Content,
+			&notebook.CreatedAt,
+			&notebook.UpdatedAt,
+		); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error scanning notebook data"})
+		}
+		notebooks = append(notebooks, notebook)
+	}
+
+	// Check for any error that occurred during iteration
+	if err := rows.Err(); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error iterating over notebooks"})
+	}
+
+	// Return the list of notebooks as a JSON response
+	return c.JSON(notebooks)
 }

@@ -13,5 +13,6 @@ func UserRoutes(app *fiber.App) {
 	userGroup.Get("/board-list", user.GetBoardList)
 	userGroup.Get("/profile", user.GetAllProfileData)
 	userGroup.Patch("/profile", user.SetPortfolioData)
+	userGroup.Get("/my-notes", user.GetNotesList)
 
 }
