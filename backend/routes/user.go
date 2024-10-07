@@ -1,9 +1,8 @@
 package routes
 
 import (
-	"go-project/controllers/user"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/quizrr/controllers/user"
 )
 
 func UserRoutes(app *fiber.App) {
