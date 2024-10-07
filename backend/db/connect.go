@@ -35,7 +35,13 @@ func ConnectDatabase() error {
 	DB = dbPool
 	fmt.Println("Database connected successfully...")
 
-	createUserTable()
+	// createUserTable()
+	// createNotebookTable()
+	createProfileTable()
+	createTestSeriesTable()
+	createTestResultTable()
+	createOptionTable()
+	createQuestionTable()
 	return nil
 }
 
@@ -56,15 +62,139 @@ func createUserTable() {
 			email VARCHAR(100) NOT NULL UNIQUE,
 			password TEXT NOT NULL,
 			isverified BOOLEAN DEFAULT FALSE,
-			lastlogin TIMESTAMP,
+			purchases INTEGER[],
+			lastlogin TIMESTAMP WITH TIME ZONE,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);
 	`
+
 	_, err := DB.Exec(context.Background(), query)
 	if err != nil {
 		log.Fatalf("Failed to create 'users' table: %v", err)
 	}
 
 	fmt.Println("'users' table created successfully.")
+}
+
+func createNotebookTable() {
+	query := `
+		CREATE TABLE IF NOT EXISTS notebooks (
+			id SERIAL PRIMARY KEY,
+			user_id INTEGER NOT NULL REFERENCES users(id),
+			topic VARCHAR(100),
+			content TEXT,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+	`
+	_, err := DB.Exec(context.Background(), query)
+	if err != nil {
+		log.Fatalf("Failed to create 'notebooks' table: %v", err)
+	}
+
+	fmt.Println("'notebooks' table created successfully.")
+}
+
+func createProfileTable() {
+	query := `
+		CREATE TABLE IF NOT EXISTS profiles (
+			id SERIAL PRIMARY KEY,
+			phone_no VARCHAR(15),
+			country VARCHAR(100),
+			state VARCHAR(100),
+			city VARCHAR(100),
+			pincode VARCHAR(10),
+			standard VARCHAR(50),
+			board VARCHAR(100),
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+	`
+	_, err := DB.Exec(context.Background(), query)
+	if err != nil {
+		log.Fatalf("Failed to create 'profiles' table: %v", err)
+	}
+
+	fmt.Println("'profiles' table created successfully.")
+}
+
+func createTestSeriesTable() {
+	query := `
+		CREATE TABLE IF NOT EXISTS test_series (
+			id SERIAL PRIMARY KEY,
+			name VARCHAR(100) NOT NULL,
+			description TEXT,
+			data JSON,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+	`
+	_, err := DB.Exec(context.Background(), query)
+	if err != nil {
+		log.Fatalf("Failed to create 'test_series' table: %v", err)
+	}
+
+	fmt.Println("'test_series' table created successfully.")
+}
+
+func createTestResultTable() {
+	query := `
+		CREATE TABLE IF NOT EXISTS test_results (
+			id SERIAL PRIMARY KEY,
+			user_id INTEGER NOT NULL REFERENCES users(id),
+			test_id INTEGER NOT NULL REFERENCES test_series(id),
+			total_marks FLOAT8 NOT NULL,
+			test_date TIMESTAMP NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+	`
+	_, err := DB.Exec(context.Background(), query)
+	if err != nil {
+		log.Fatalf("Failed to create 'test_results' table: %v", err)
+	}
+
+	fmt.Println("'test_results' table created successfully.")
+}
+
+func createQuestionTable() {
+	query := `
+		CREATE TABLE IF NOT EXISTS questions (
+			id SERIAL PRIMARY KEY,
+			text TEXT NOT NULL,
+			image TEXT,
+			subject VARCHAR(100),
+			section VARCHAR(100),
+			answer VARCHAR(255),
+			test_series_id INTEGER NOT NULL REFERENCES test_series(id),
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+	`
+	_, err := DB.Exec(context.Background(), query)
+	if err != nil {
+		log.Fatalf("Failed to create 'questions' table: %v", err)
+	}
+
+	fmt.Println("'questions' table created successfully.")
+}
+
+func createOptionTable() {
+	query := `
+		CREATE TABLE IF NOT EXISTS options (
+			id SERIAL PRIMARY KEY,
+			text TEXT NOT NULL,
+			image TEXT,
+			question_id INTEGER NOT NULL REFERENCES questions(id),
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+	`
+	_, err := DB.Exec(context.Background(), query)
+	if err != nil {
+		log.Fatalf("Failed to create 'options' table: %v", err)
+	}
+
+	fmt.Println("'options' table created successfully.")
 }
