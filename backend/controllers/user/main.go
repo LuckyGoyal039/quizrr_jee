@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -167,6 +168,7 @@ func generateJWTToken(user UserDetails) (string, error) {
 
 	return tokenString, nil
 }
+
 func GetBoardList(c *fiber.Ctx) error {
 	var boards []struct {
 		Fname string `json:"full_name"`
@@ -208,4 +210,98 @@ func GetBoardList(c *fiber.Ctx) error {
 
 	// Return the list of boards as a JSON response
 	return c.JSON(boards)
+}
+
+func GetAllProfileData(c *fiber.Ctx) error {
+	// Extract the token from the Authorization header
+	tokenStr := c.Get("Authorization")[7:] // Skip "Bearer "
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		// Check the token signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte("your_secret_key"), nil // Use your actual secret key
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Extract the claims from the token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Safely extract the user ID and ensure it exists
+	userIDInterface, exists := claims["id"]
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
+	}
+
+	// Assert userIDInterface to float64 and convert to uint
+	userIDFloat, ok := userIDInterface.(float64)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID type"})
+	}
+	userID := uint(userIDFloat)
+
+	type ProfileData struct {
+		UserID      uint   `json:"user_id"`
+		Username    string `json:"username"`
+		DisplayName string `json:"display_name"`
+		Email       string `json:"email"`
+		PhoneNo     string `json:"phone_no"`
+		Country     string `json:"country"`
+		State       string `json:"state"`
+		City        string `json:"city"`
+		PinCode     string `json:"pin_code"`
+		Standard    string `json:"standard"`
+		Board       string `json:"board"`
+	}
+
+	var profileData ProfileData
+	query := `
+		SELECT 
+			u.id,
+			u.username,
+			u.displayname,
+			u.email,
+			p.phone_no,
+			p.country,
+			p.state,
+			p.city,
+			p.pincode,
+			p.standard,
+			p.board
+		FROM users u
+		JOIN profiles p ON u.id = p.id
+		WHERE u.id = $1
+	`
+
+	queryNew := `Select * from users`
+
+	newrow := database.DB.QueryRow(context.Background(), queryNew, userID)
+	return c.JSON(newrow)
+	row := database.DB.QueryRow(context.Background(), query, userID)
+	if err := row.Scan(
+		&profileData.UserID,
+		&profileData.Username,
+		&profileData.DisplayName,
+		&profileData.Email,
+		&profileData.PhoneNo,
+		&profileData.Country,
+		&profileData.State,
+		&profileData.City,
+		&profileData.PinCode,
+		&profileData.Standard,
+		&profileData.Board,
+	); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Error while scanning profile data",
+		})
+	}
+
+	// Return the profile data as a JSON response
+	return c.JSON(profileData)
 }

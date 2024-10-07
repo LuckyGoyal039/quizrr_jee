@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	database "github.com/quizrr/db"
+	"github.com/quizrr/middleware"
 	"github.com/quizrr/routes"
 )
 
@@ -23,10 +24,10 @@ func main() {
 
 	app := fiber.New()
 
-	// Test route
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello from the server")
-	})
+	routes.AuthRoutes(app)
+
+	app.Use(middleware.AuthMiddleware)
+
 	routes.UserRoutes(app)
 
 	// shutdown gracefully
