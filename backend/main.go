@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	database "github.com/quizrr/db"
 	"github.com/quizrr/middleware"
 	"github.com/quizrr/routes"
@@ -25,6 +26,7 @@ func main() {
 	app := fiber.New()
 
 	routes.AuthRoutes(app)
+	app.Use(cors.New())
 
 	app.Use(middleware.AuthMiddleware)
 

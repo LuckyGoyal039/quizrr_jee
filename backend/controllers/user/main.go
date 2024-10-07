@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -48,6 +49,16 @@ type ProfileData struct {
 	PinCode     sql.NullString `json:"pin_code"`
 	Standard    sql.NullString `json:"standard"`
 	Board       sql.NullString `json:"board"`
+	OnBoarding  sql.NullBool   `json:"onboarding"`
+}
+
+type Notebook struct {
+	ID        uint      `json:"id"`
+	UserID    uint      `json:"user_id"`
+	Topic     string    `json:"topic"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 var jwtSecret = []byte("your_secret_key")
@@ -429,7 +440,8 @@ func SetPortfolioData(c *fiber.Ctx) error {
 			city,
 			pincode,
 			standard,
-			board
+			board,
+			onboarding
 		FROM profiles
 		WHERE id = $1
 	`
@@ -443,10 +455,324 @@ func SetPortfolioData(c *fiber.Ctx) error {
 		&profileData.PinCode,
 		&profileData.Standard,
 		&profileData.Board,
+		&profileData.OnBoarding,
 	); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching updated profile data"})
 	}
 
 	// Return the updated profile data as a JSON response
 	return c.JSON(profileData)
+}
+
+func GetNotesList(c *fiber.Ctx) error {
+	// Extract the token from the Authorization header
+	tokenStr := c.Get("Authorization")
+	if len(tokenStr) < 7 || tokenStr[:7] != "Bearer " {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing or invalid token"})
+	}
+	tokenStr = tokenStr[7:] // Skip "Bearer "
+
+	// Parse and validate the token
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte("your_secret_key"), nil // Use your actual secret key
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Extract claims from the token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token claims"})
+	}
+
+	// Safely extract the user ID
+	userIDInterface, exists := claims["id"]
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
+	}
+
+	// Assert userIDInterface to float64 and convert to uint
+	userIDFloat, ok := userIDInterface.(float64)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID type"})
+	}
+	userID := uint(userIDFloat)
+
+	// Query to fetch notebooks for the user
+	query := `
+		SELECT 
+			id, 
+			user_id, 
+			topic, 
+			content, 
+			created_at, 
+			updated_at 
+		FROM notebooks 
+		WHERE user_id = $1
+	`
+
+	// Execute the query
+	rows, err := database.DB.Query(context.Background(), query, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve notebooks"})
+	}
+	defer rows.Close() // Ensure rows are closed after processing
+
+	var notebooks []Notebook
+
+	// Iterate over the rows and scan the data into Notebook struct
+	for rows.Next() {
+		var notebook Notebook
+		if err := rows.Scan(
+			&notebook.ID,
+			&notebook.UserID,
+			&notebook.Topic,
+			&notebook.Content,
+			&notebook.CreatedAt,
+			&notebook.UpdatedAt,
+		); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error scanning notebook data"})
+		}
+		notebooks = append(notebooks, notebook)
+	}
+
+	// Check for any error that occurred during iteration
+	if err := rows.Err(); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error iterating over notebooks"})
+	}
+
+	// Return the list of notebooks as a JSON response
+	return c.JSON(notebooks)
+}
+
+func CreateNote(c *fiber.Ctx) error {
+	// Extract the token from the Authorization header
+	tokenStr := c.Get("Authorization")[7:] // Skip "Bearer "
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		// Check the token signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte("your_secret_key"), nil // Use your actual secret key
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Extract the claims from the token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Safely extract the user ID
+	userIDInterface, exists := claims["id"]
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
+	}
+
+	// Assert userIDInterface to float64 and convert to uint
+	userIDFloat, ok := userIDInterface.(float64)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID type"})
+	}
+	userID := uint(userIDFloat)
+
+	// Parse the request body to get notebook data
+	var input struct {
+		Topic   string `json:"topic"`
+		Content string `json:"content"`
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
+	}
+
+	// Prepare the insert query
+	query := `
+		INSERT INTO notebooks (user_id, topic, content, created_at, updated_at) 
+		VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+		RETURNING id
+	`
+
+	// Execute the query
+	var notebookID uint
+	err = database.DB.QueryRow(context.Background(), query, userID, input.Topic, input.Content).Scan(&notebookID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create notebook entry"})
+	}
+
+	// Create a response object with the newly created notebook
+	newNotebook := Notebook{
+		ID:        notebookID,
+		UserID:    userID,
+		Topic:     input.Topic,
+		Content:   input.Content,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	// Return the created notebook entry as a JSON response
+	return c.Status(fiber.StatusCreated).JSON(newNotebook)
+}
+
+func DeleteNote(c *fiber.Ctx) error {
+	// Extract the token from the Authorization header
+	tokenStr := c.Get("Authorization")[7:] // Skip "Bearer "
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		// Check the token signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte("your_secret_key"), nil // Use your actual secret key
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Extract the claims from the token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Safely extract the user ID and ensure it exists
+	userIDInterface, exists := claims["id"]
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
+	}
+
+	// Assert userIDInterface to float64 and convert to uint
+	userIDFloat, ok := userIDInterface.(float64)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID type"})
+	}
+	userID := uint(userIDFloat)
+
+	// Get the note ID from the URL parameter
+	noteID, err := strconv.Atoi(c.Params("id")) // Assuming the note ID is passed in the URL as /note/:id
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid note ID"})
+	}
+
+	// Prepare the delete query
+	query := `DELETE FROM notebooks WHERE id = $1 AND user_id = $2`
+	result, err := database.DB.Exec(context.Background(), query, noteID, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete notebook entry"})
+	}
+
+	// Check if any rows were affected
+	rowsAffected := result.RowsAffected()
+
+	if rowsAffected == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Notebook not found or you do not have permission to delete it"})
+	}
+
+	// Return success response
+	return c.JSON(fiber.Map{"message": "Notebook deleted successfully"})
+}
+
+func UpdateNote(c *fiber.Ctx) error {
+	// Extract the token from the Authorization header
+	tokenStr := c.Get("Authorization")[7:] // Skip "Bearer "
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		// Check the token signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte("your_secret_key"), nil // Use your actual secret key
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Extract the claims from the token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Safely extract the user ID and ensure it exists
+	userIDInterface, exists := claims["id"]
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
+	}
+
+	// Assert userIDInterface to float64 and convert to uint
+	userIDFloat, ok := userIDInterface.(float64)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID type"})
+	}
+	userID := uint(userIDFloat)
+
+	// Get the note ID from the URL route parameter
+	noteID, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid note ID"})
+	}
+
+	// Parse the request body to get the updated note details
+	var input struct {
+		Topic   string `json:"topic"`
+		Content string `json:"content"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
+	}
+
+	// Validate that the topic and content are not empty
+	if input.Topic == "" || input.Content == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Topic and content must not be empty"})
+	}
+
+	// Update the notebook entry for the given note ID and user ID
+	query := `
+		UPDATE notebooks 
+		SET topic = $1, content = $2, updated_at = CURRENT_TIMESTAMP 
+		WHERE id = $3 AND user_id = $4
+	`
+	result, err := database.DB.Exec(context.Background(), query, input.Topic, input.Content, noteID, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update note"})
+	}
+
+	// Check if any rows were affected
+	rowsAffected := result.RowsAffected()
+
+	if rowsAffected == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Note not found or no changes made"})
+	}
+
+	// Fetch the updated note to return as a response
+	var updatedNote struct {
+		ID        int       `json:"id"`
+		UserID    uint      `json:"user_id"`
+		Topic     string    `json:"topic"`
+		Content   string    `json:"content"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+	}
+	fetchQuery := `
+		SELECT id, user_id, topic, content, created_at, updated_at 
+		FROM notebooks 
+		WHERE id = $1 AND user_id = $2
+	`
+	err = database.DB.QueryRow(context.Background(), fetchQuery, noteID, userID).Scan(
+		&updatedNote.ID, &updatedNote.UserID, &updatedNote.Topic, &updatedNote.Content, &updatedNote.CreatedAt, &updatedNote.UpdatedAt,
+	)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch updated note"})
+	}
+
+	// Return the updated note as a JSON response
+	return c.JSON(updatedNote)
 }
