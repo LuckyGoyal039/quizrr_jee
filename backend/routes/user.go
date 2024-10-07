@@ -14,5 +14,8 @@ func UserRoutes(app *fiber.App) {
 	userGroup.Get("/profile", user.GetAllProfileData)
 	userGroup.Patch("/profile", user.SetPortfolioData)
 	userGroup.Get("/my-notes", user.GetNotesList)
+	userGroup.Post("/my-notes", user.CreateNote)
+	userGroup.Delete("/my-notes/:id", user.DeleteNote)
+	// userGroup.Patch("/my-notes", user.UpdateNote)
 
 }
