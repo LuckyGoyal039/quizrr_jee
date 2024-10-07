@@ -28,6 +28,12 @@ type UserDetails struct {
 	Email    string `json:"email"`
 }
 
+type BoardList struct {
+	ID        uint   `gorm:"primaryKey"`        // ID is the primary key for the board list
+	Title     string `gorm:"size:255;not null"` // Title is the name of the board, with a max length of 255 characters
+	IsVisible bool   `gorm:"default:true"`      // IsVisible indicates whether the board is visible or not, with a default value of true
+}
+
 var jwtSecret = []byte("your_secret_key")
 
 func Register(c *fiber.Ctx) error {
@@ -160,4 +166,46 @@ func generateJWTToken(user UserDetails) (string, error) {
 	}
 
 	return tokenString, nil
+}
+func GetBoardList(c *fiber.Ctx) error {
+	var boards []struct {
+		Fname string `json:"full_name"`
+		Sname string `json:"short_name"`
+	}
+
+	// Define the query to select the full_name and short_name from board_lists
+	query := `SELECT full_name AS fname, short_name AS sname FROM board_lists`
+
+	// Execute the query and get the rows
+	rows, err := database.DB.Query(context.Background(), query)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch board list",
+		})
+	}
+	defer rows.Close()
+
+	// Loop through the rows and append the results to the boards slice
+	for rows.Next() {
+		var board struct {
+			Fname string `json:"full_name"`
+			Sname string `json:"short_name"`
+		}
+		if err := rows.Scan(&board.Fname, &board.Sname); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error while scanning board data",
+			})
+		}
+		boards = append(boards, board)
+	}
+
+	// Check for errors after row iteration
+	if rows.Err() != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch board list",
+		})
+	}
+
+	// Return the list of boards as a JSON response
+	return c.JSON(boards)
 }

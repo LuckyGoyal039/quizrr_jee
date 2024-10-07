@@ -20,12 +20,13 @@ func (j JSON) MarshalJSON() ([]byte, error) {
 type User struct {
 	ID          uint          `gorm:"primaryKey"`
 	Username    string        `gorm:"size:100;not null;unique"`
-	Displayname string        `gorm:"size:100"`
+	DisplayName string        `gorm:"size:100"`
 	Email       string        `gorm:"size:100;not null;unique"`
 	Password    string        `gorm:"not null"`
-	Isverified  bool          `gorm:"default:false"`
+	IsVerified  bool          `gorm:"default:false"`
+	IsAdmin     bool          `gorm:"default:false"`
 	Purchases   pq.Int64Array `gorm:"type:integer[]"`
-	Lastlogin   time.Time
+	LastLogin   time.Time
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 }
@@ -40,16 +41,17 @@ type Notebook struct {
 }
 
 type Profile struct {
-	ID        uint      `gorm:"primaryKey"`
-	PhoneNo   string    `gorm:"size:15"`
-	Country   string    `gorm:"size:100"`
-	State     string    `gorm:"size:100"`
-	City      string    `gorm:"size:100"`
-	PinCode   string    `gorm:"size:10"`
-	Standard  string    `gorm:"size:50"`
-	Board     string    `gorm:"size:100"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	ID         uint      `gorm:"primaryKey"`
+	PhoneNo    string    `gorm:"size:15"`
+	Country    string    `gorm:"size:100"`
+	State      string    `gorm:"size:100"`
+	City       string    `gorm:"size:100"`
+	PinCode    string    `gorm:"size:10"`
+	Standard   string    `gorm:"size:50"`
+	Board      string    `gorm:"size:100"`
+	OnBoarding bool      `gorm:"default:false"`
+	CreatedAt  time.Time `gorm:"autoCreateTime"`
+	UpdatedAt  time.Time `gorm:"autoUpdateTime"`
 }
 
 type TestSeries struct {
@@ -83,4 +85,11 @@ type TestResult struct {
 	TestDate   time.Time `gorm:"not null"`
 	CreatedAt  time.Time `gorm:"autoCreateTime"`
 	UpdatedAt  time.Time `gorm:"autoUpdateTime"`
+}
+
+type BoardList struct {
+	ID        uint   `gorm:"primaryKey"`
+	FullName  string `gorm:"size:255"`
+	ShortName string `gorm:"size:100"`
+	// IsVisible bool   `gorm:"default:true"`
 }

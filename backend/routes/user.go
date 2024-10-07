@@ -10,4 +10,6 @@ func UserRoutes(app *fiber.App) {
 
 	userGroup.Post("/register", user.Register)
 	userGroup.Post("/login", user.Login)
+	userGroup.Get("/board-list", user.GetBoardList)
+
 }
