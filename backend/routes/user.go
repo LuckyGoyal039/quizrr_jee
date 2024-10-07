@@ -16,6 +16,6 @@ func UserRoutes(app *fiber.App) {
 	userGroup.Get("/my-notes", user.GetNotesList)
 	userGroup.Post("/my-notes", user.CreateNote)
 	userGroup.Delete("/my-notes/:id", user.DeleteNote)
-	// userGroup.Patch("/my-notes", user.UpdateNote)
+	userGroup.Patch("/my-notes/:id", user.UpdateNote)
 
 }

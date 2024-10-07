@@ -679,3 +679,100 @@ func DeleteNote(c *fiber.Ctx) error {
 	// Return success response
 	return c.JSON(fiber.Map{"message": "Notebook deleted successfully"})
 }
+
+func UpdateNote(c *fiber.Ctx) error {
+	// Extract the token from the Authorization header
+	tokenStr := c.Get("Authorization")[7:] // Skip "Bearer "
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		// Check the token signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte("your_secret_key"), nil // Use your actual secret key
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Extract the claims from the token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Safely extract the user ID and ensure it exists
+	userIDInterface, exists := claims["id"]
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
+	}
+
+	// Assert userIDInterface to float64 and convert to uint
+	userIDFloat, ok := userIDInterface.(float64)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID type"})
+	}
+	userID := uint(userIDFloat)
+
+	// Get the note ID from the URL route parameter
+	noteID, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid note ID"})
+	}
+
+	// Parse the request body to get the updated note details
+	var input struct {
+		Topic   string `json:"topic"`
+		Content string `json:"content"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
+	}
+
+	// Validate that the topic and content are not empty
+	if input.Topic == "" || input.Content == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Topic and content must not be empty"})
+	}
+
+	// Update the notebook entry for the given note ID and user ID
+	query := `
+		UPDATE notebooks 
+		SET topic = $1, content = $2, updated_at = CURRENT_TIMESTAMP 
+		WHERE id = $3 AND user_id = $4
+	`
+	result, err := database.DB.Exec(context.Background(), query, input.Topic, input.Content, noteID, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update note"})
+	}
+
+	// Check if any rows were affected
+	rowsAffected := result.RowsAffected()
+
+	if rowsAffected == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Note not found or no changes made"})
+	}
+
+	// Fetch the updated note to return as a response
+	var updatedNote struct {
+		ID        int       `json:"id"`
+		UserID    uint      `json:"user_id"`
+		Topic     string    `json:"topic"`
+		Content   string    `json:"content"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+	}
+	fetchQuery := `
+		SELECT id, user_id, topic, content, created_at, updated_at 
+		FROM notebooks 
+		WHERE id = $1 AND user_id = $2
+	`
+	err = database.DB.QueryRow(context.Background(), fetchQuery, noteID, userID).Scan(
+		&updatedNote.ID, &updatedNote.UserID, &updatedNote.Topic, &updatedNote.Content, &updatedNote.CreatedAt, &updatedNote.UpdatedAt,
+	)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch updated note"})
+	}
+
+	// Return the updated note as a JSON response
+	return c.JSON(updatedNote)
+}
