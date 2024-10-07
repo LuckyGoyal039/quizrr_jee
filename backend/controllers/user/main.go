@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
@@ -33,6 +34,20 @@ type BoardList struct {
 	ID        uint   `gorm:"primaryKey"`        // ID is the primary key for the board list
 	Title     string `gorm:"size:255;not null"` // Title is the name of the board, with a max length of 255 characters
 	IsVisible bool   `gorm:"default:true"`      // IsVisible indicates whether the board is visible or not, with a default value of true
+}
+
+type ProfileData struct {
+	UserID      uint           `json:"user_id"`
+	Username    string         `json:"username"`
+	DisplayName sql.NullString `json:"display_name"`
+	Email       string         `json:"email"`
+	PhoneNo     sql.NullString `json:"phone_no"`
+	Country     sql.NullString `json:"country"`
+	State       sql.NullString `json:"state"`
+	City        sql.NullString `json:"city"`
+	PinCode     sql.NullString `json:"pin_code"`
+	Standard    sql.NullString `json:"standard"`
+	Board       sql.NullString `json:"board"`
 }
 
 var jwtSecret = []byte("your_secret_key")
@@ -216,11 +231,10 @@ func GetAllProfileData(c *fiber.Ctx) error {
 	// Extract the token from the Authorization header
 	tokenStr := c.Get("Authorization")[7:] // Skip "Bearer "
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-		// Check the token signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return []byte("your_secret_key"), nil // Use your actual secret key
+		return []byte("your_secret_key"), nil
 	})
 
 	if err != nil || !token.Valid {
@@ -246,24 +260,12 @@ func GetAllProfileData(c *fiber.Ctx) error {
 	}
 	userID := uint(userIDFloat)
 
-	type ProfileData struct {
-		UserID      uint   `json:"user_id"`
-		Username    string `json:"username"`
-		DisplayName string `json:"display_name"`
-		Email       string `json:"email"`
-		PhoneNo     string `json:"phone_no"`
-		Country     string `json:"country"`
-		State       string `json:"state"`
-		City        string `json:"city"`
-		PinCode     string `json:"pin_code"`
-		Standard    string `json:"standard"`
-		Board       string `json:"board"`
-	}
+	// ProfileData struct with sql.NullString for nullable fields
 
 	var profileData ProfileData
 	query := `
 		SELECT 
-			u.id,
+			u.id AS user_id,
 			u.username,
 			u.displayname,
 			u.email,
@@ -275,14 +277,9 @@ func GetAllProfileData(c *fiber.Ctx) error {
 			p.standard,
 			p.board
 		FROM users u
-		JOIN profiles p ON u.id = p.id
+		JOIN profiles p ON u.id = p.user_id
 		WHERE u.id = $1
 	`
-
-	queryNew := `Select * from users`
-
-	newrow := database.DB.QueryRow(context.Background(), queryNew, userID)
-	return c.JSON(newrow)
 	row := database.DB.QueryRow(context.Background(), query, userID)
 	if err := row.Scan(
 		&profileData.UserID,
@@ -303,5 +300,153 @@ func GetAllProfileData(c *fiber.Ctx) error {
 	}
 
 	// Return the profile data as a JSON response
+	return c.JSON(fiber.Map{
+		"user_id":      profileData.UserID,
+		"username":     profileData.Username,
+		"display_name": profileData.DisplayName.String, // Use .String for sql.NullString
+		"email":        profileData.Email,
+		"phone_no":     profileData.PhoneNo.String,
+		"country":      profileData.Country.String,
+		"state":        profileData.State.String,
+		"city":         profileData.City.String,
+		"pin_code":     profileData.PinCode.String,
+		"standard":     profileData.Standard.String,
+		"board":        profileData.Board.String,
+	})
+}
+
+func SetPortfolioData(c *fiber.Ctx) error {
+	// Extract the token from the Authorization header
+	tokenStr := c.Get("Authorization")
+	if len(tokenStr) < 7 || tokenStr[:7] != "Bearer " {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing or invalid token"})
+	}
+	tokenStr = tokenStr[7:] // Skip "Bearer "
+
+	// Parse and validate the token
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte("your_secret_key"), nil // Use your actual secret key
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Extract claims from the token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token claims"})
+	}
+
+	// Safely extract the user ID
+	userIDInterface, exists := claims["id"]
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
+	}
+
+	// Assert userIDInterface to float64 and convert to uint
+	userIDFloat, ok := userIDInterface.(float64)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID type"})
+	}
+	userID := uint(userIDFloat)
+
+	// Debug: Print incoming request body
+	log.Println("Raw Body:", string(c.Body()))
+
+	// Parse the x-www-form-urlencoded input data
+	input := new(struct {
+		Board    string `form:"board"`
+		PhoneNo  string `form:"phone_no"`
+		Country  string `form:"country"`
+		State    string `form:"state"`
+		City     string `form:"city"`
+		PinCode  string `form:"pincode"`
+		Standard string `form:"standard"`
+	})
+
+	// Use BodyParser to parse the body directly into the struct
+	if err := c.BodyParser(input); err != nil {
+		log.Println("BodyParser Error:", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
+	}
+
+	// Create a map from the struct
+	parsedInput := map[string]interface{}{
+		"board":    input.Board,
+		"phone_no": input.PhoneNo,
+		"country":  input.Country,
+		"state":    input.State,
+		"city":     input.City,
+		"pincode":  input.PinCode,
+		"standard": input.Standard,
+	}
+
+	// Ensure that exactly one property is provided for the update
+	count := 0
+	var column string
+	var value interface{}
+
+	for key, val := range parsedInput {
+		if val != "" { // Only consider non-empty fields
+			count++
+			column = key
+			value = val
+		}
+	}
+
+	if count != 1 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Only one property should be provided"})
+	}
+
+	// Validate the column being updated
+	allowedColumns := map[string]bool{
+		"phone_no": true, "country": true, "state": true, "city": true,
+		"pincode": true, "standard": true, "board": true,
+	}
+	if !allowedColumns[column] {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid property"})
+	}
+
+	// Update the profile table with the new value
+	query := fmt.Sprintf(`UPDATE profiles SET %s = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, column)
+	_, err = database.DB.Exec(context.Background(), query, value, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update profile data"})
+	}
+
+	// Fetch the updated profile data
+	var profileData ProfileData
+	fetchQuery := `
+		SELECT 
+			id,
+			phone_no,
+			country,
+			state,
+			city,
+			pincode,
+			standard,
+			board
+		FROM profiles
+		WHERE id = $1
+	`
+	row := database.DB.QueryRow(context.Background(), fetchQuery, userID)
+	if err := row.Scan(
+		&profileData.UserID,
+		&profileData.PhoneNo,
+		&profileData.Country,
+		&profileData.State,
+		&profileData.City,
+		&profileData.PinCode,
+		&profileData.Standard,
+		&profileData.Board,
+	); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching updated profile data"})
+	}
+
+	// Return the updated profile data as a JSON response
 	return c.JSON(profileData)
 }

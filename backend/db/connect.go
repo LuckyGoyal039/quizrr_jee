@@ -101,18 +101,23 @@ func createNotebookTable() {
 func createProfileTable() {
 	query := `
 	CREATE TABLE IF NOT EXISTS profiles (
-		id SERIAL PRIMARY KEY,
-		phone_no VARCHAR(15),
-		country VARCHAR(100),
-		state VARCHAR(100),
-		city VARCHAR(100),
-		pincode VARCHAR(10),
-		standard VARCHAR(50),
-		board VARCHAR(100),
-		onboarding BOOLEAN DEFAULT FALSE,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	);
+    id SERIAL PRIMARY KEY, 
+    user_id INT NOT NULL,    
+    phone_no VARCHAR(15),
+    country VARCHAR(100),
+    state VARCHAR(100),
+    city VARCHAR(100),
+    pincode VARCHAR(10),
+    standard VARCHAR(50),
+    board VARCHAR(100),
+    onboarding BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user
+        FOREIGN KEY (user_id) REFERENCES users(id)  
+        ON DELETE CASCADE                           
+);
+
 `
 
 	_, err := DB.Exec(context.Background(), query)
