@@ -7,15 +7,15 @@ import {
 
 function FAQ() {
   return (
-    <div>
-      <div className="">
-        <h1>Frequently Asked Questions</h1>
-        <p>
+    <div className="flex flex-col items-center pt-20">
+      <div className="text-center max-w-2xl">
+        <h1 className="text-[44px] font-bold mb-4">Frequently Asked Questions</h1>
+        <p className="text-xl text-[#869ab8] font-normal mb-10">
           Here are some frequently asked questions by students. If you can't
           find an answer for your query here, feel free to contact us.
         </p>
       </div>
-      <div className="">
+      <div className="mb-20">
         <Accordion type="multiple" >
           <AccordionItem value="item-1">
             <AccordionTrigger>
