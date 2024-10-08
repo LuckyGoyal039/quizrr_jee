@@ -402,6 +402,7 @@ func SetPortfolioData(c *fiber.Ctx) error {
 		PinCode     string `form:"pincode"`
 		Standard    string `form:"standard"`
 		DisplayName string `form:"displayname"`
+		OnBoarding  bool   `form:"onboarding"`
 	})
 
 	if err := c.BodyParser(input); err != nil {
@@ -418,6 +419,7 @@ func SetPortfolioData(c *fiber.Ctx) error {
 		"pincode":     input.PinCode,
 		"standard":    input.Standard,
 		"displayname": input.DisplayName,
+		"onboarding":  input.OnBoarding,
 	}
 
 	count := 0
@@ -425,10 +427,19 @@ func SetPortfolioData(c *fiber.Ctx) error {
 	var value interface{}
 
 	for key, val := range parsedInput {
-		if val != "" {
-			count++
-			column = key
-			value = val
+		switch v := val.(type) {
+		case string:
+			if v != "" {
+				count++
+				column = key
+				value = val
+			}
+		case bool:
+			if val == true {
+				count++
+				column = key
+				value = val
+			}
 		}
 	}
 
@@ -438,7 +449,7 @@ func SetPortfolioData(c *fiber.Ctx) error {
 
 	allowedProfileColumns := map[string]bool{
 		"phone_no": true, "country": true, "state": true, "city": true,
-		"pincode": true, "standard": true, "board": true,
+		"pincode": true, "standard": true, "board": true, "onboarding": true,
 	}
 	allowedUserColumns := map[string]bool{
 		"displayname": true,
@@ -501,9 +512,9 @@ func SetPortfolioData(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"user_id":     profileData.UserID,
-		"phone_no":    profileData.PhoneNo.String, // Use .String for sql.NullString
-		"country":     profileData.Country.String, // Use .String for sql.NullString
-		"state":       profileData.State.String,   // Use .String for sql.NullString
+		"phone_no":    profileData.PhoneNo.String,
+		"country":     profileData.Country.String,
+		"state":       profileData.State.String,
 		"city":        profileData.City.String,
 		"pincode":     profileData.PinCode.String,
 		"standard":    profileData.Standard.String,

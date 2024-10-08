@@ -18,4 +18,13 @@ func UserRoutes(app *fiber.App) {
 	userGroup.Delete("/my-notes/:id", user.DeleteNote)
 	userGroup.Patch("/my-notes/:id", user.UpdateNote)
 
+	// get list of all test
+
+	// buy test api
+	//get the test api and add the testid to the user
+
+	//get testid and token
+	// check in user purchased section that testid is present or not
+	// if present then return the test data of id=testid
+
 }

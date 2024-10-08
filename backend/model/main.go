@@ -64,18 +64,18 @@ type TestSeries struct {
 }
 
 type Question struct {
-	Text    string   `json:"text"`
-	Image   string   `json:"image,omitempty"`
-	Subject string   `json:"subject"`
-	Section string   `json:"section"`
-	Options []Option `json:"options"`
-	Answer  string   `json:"answer"`
+	Text    string `json:"text"`
+	Image   string `json:"image,omitempty"`
+	Subject string `json:"subject"`
+	Section string `json:"section"`
+	// Options []Option `json:"options"`
+	Answer string `json:"answer"`
 }
 
-type Option struct {
-	Text  string `json:"text"`
-	Image string `json:"image,omitempty"`
-}
+// type Option struct {
+// 	Text  string `json:"text"`
+// 	Image string `json:"image,omitempty"`
+// }
 
 type TestResult struct {
 	ID         uint      `gorm:"primaryKey"`
