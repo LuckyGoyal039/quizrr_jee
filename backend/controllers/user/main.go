@@ -62,7 +62,7 @@ type Notebook struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-var jwtSecret = os.Getenv("JWT_SECRET")
+// var jwtSecret = os.Getenv("JWT_SECRET")
 
 func Register(c *fiber.Ctx) error {
 	// Parse request body
@@ -637,6 +637,7 @@ func GetNotesList(c *fiber.Ctx) error {
 func CreateNote(c *fiber.Ctx) error {
 	// Extract the token from the Authorization header
 	tokenStr := c.Get("Authorization")[7:] // Skip "Bearer "
+	var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		// Check the token signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -708,6 +709,7 @@ func CreateNote(c *fiber.Ctx) error {
 
 func DeleteNote(c *fiber.Ctx) error {
 	// Extract the token from the Authorization header
+	var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 	tokenStr := c.Get("Authorization")[7:] // Skip "Bearer "
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		// Check the token signing method
@@ -766,6 +768,7 @@ func DeleteNote(c *fiber.Ctx) error {
 
 func UpdateNote(c *fiber.Ctx) error {
 	// Extract the token from the Authorization header
+	var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 	tokenStr := c.Get("Authorization")[7:] // Skip "Bearer "
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		// Check the token signing method
