@@ -47,7 +47,7 @@ type ProfileData struct {
 	Country     sql.NullString `json:"country"`
 	State       sql.NullString `json:"state"`
 	City        sql.NullString `json:"city"`
-	PinCode     sql.NullString `json:"pin_code"`
+	PinCode     sql.NullString `json:"pincode"`
 	Standard    sql.NullString `json:"standard"`
 	Board       sql.NullString `json:"board"`
 	OnBoarding  sql.NullBool   `json:"onboarding"`
@@ -349,7 +349,7 @@ func GetAllProfileData(c *fiber.Ctx) error {
 		"country":     profileData.Country.String,
 		"state":       profileData.State.String,
 		"city":        profileData.City.String,
-		"pin_code":    profileData.PinCode.String,
+		"pincode":     profileData.PinCode.String,
 		"standard":    profileData.Standard.String,
 		"board":       profileData.Board.String,
 	})
@@ -445,7 +445,7 @@ func SetPortfolioData(c *fiber.Ctx) error {
 	}
 
 	if allowedProfileColumns[column] {
-		query := fmt.Sprintf(`UPDATE profiles SET %s = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, column)
+		query := fmt.Sprintf(`UPDATE profiles SET %s = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2`, column)
 		_, err = database.DB.Exec(context.Background(), query, value, userID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update profile data"})
