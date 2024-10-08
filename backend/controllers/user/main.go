@@ -499,7 +499,18 @@ func SetPortfolioData(c *fiber.Ctx) error {
 
 	profileData.DisplayName = displayName
 
-	return c.JSON(profileData)
+	return c.JSON(fiber.Map{
+		"user_id":     profileData.UserID,
+		"phone_no":    profileData.PhoneNo.String, // Use .String for sql.NullString
+		"country":     profileData.Country.String, // Use .String for sql.NullString
+		"state":       profileData.State.String,   // Use .String for sql.NullString
+		"city":        profileData.City.String,
+		"pincode":     profileData.PinCode.String,
+		"standard":    profileData.Standard.String,
+		"board":       profileData.Board.String,
+		"displayname": profileData.DisplayName.String,
+		"onboarding":  profileData.OnBoarding.Bool,
+	})
 }
 
 func GetNotesList(c *fiber.Ctx) error {
