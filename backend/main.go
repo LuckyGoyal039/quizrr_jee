@@ -27,7 +27,7 @@ func main() {
 
 	app.Use(cors.New())
 	routes.AuthRoutes(app)
-
+	routes.AdminRoutes(app)
 	app.Use(middleware.AuthMiddleware)
 
 	routes.UserRoutes(app)

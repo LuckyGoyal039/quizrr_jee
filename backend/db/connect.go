@@ -41,7 +41,7 @@ func ConnectDatabase() error {
 	createTestSeriesTable()
 	createTestResultTable()
 	createQuestionTable()
-	createOptionTable()
+	// createOptionTable()
 	createBoardListTable()
 	return nil
 }
@@ -133,8 +133,9 @@ func createTestSeriesTable() {
 		CREATE TABLE IF NOT EXISTS test_series (
 			id SERIAL PRIMARY KEY,
 			name VARCHAR(100) NOT NULL,
+			image TEXT,
 			description TEXT,
-			data JSON,
+			duration INTEGER NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);
@@ -153,7 +154,9 @@ func createTestResultTable() {
 			id SERIAL PRIMARY KEY,
 			user_id INTEGER NOT NULL REFERENCES users(id),
 			test_id INTEGER NOT NULL REFERENCES test_series(id),
-			total_marks FLOAT8 NOT NULL,
+			correct INTEGER NOT NULL,  
+			incorrect INTEGER NOT NULL,
+			data JSONB,                 
 			test_date TIMESTAMP NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -169,16 +172,10 @@ func createTestResultTable() {
 
 func createQuestionTable() {
 	query := `
-		CREATE TABLE IF NOT EXISTS questions (
-			id SERIAL PRIMARY KEY,
-			text TEXT NOT NULL,
-			image TEXT,
-			subject VARCHAR(100),
-			section VARCHAR(100),
-			answer VARCHAR(255),
-			test_series_id INTEGER NOT NULL REFERENCES test_series(id),
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		CREATE TABLE IF NOT EXISTS test_series_questions (
+			test_series_id INTEGER NOT NULL REFERENCES test_series(id) ON DELETE CASCADE,
+			question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+			PRIMARY KEY (test_series_id, question_id)
 		);
 	`
 	_, err := DB.Exec(context.Background(), query)
@@ -189,24 +186,24 @@ func createQuestionTable() {
 	fmt.Println("'questions' table created successfully.")
 }
 
-func createOptionTable() {
-	query := `
-		CREATE TABLE IF NOT EXISTS options (
-			id SERIAL PRIMARY KEY,
-			text TEXT NOT NULL,
-			image TEXT,
-			question_id INTEGER NOT NULL REFERENCES questions(id),
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-		);
-	`
-	_, err := DB.Exec(context.Background(), query)
-	if err != nil {
-		log.Fatalf("Failed to create 'options' table: %v", err)
-	}
+// func createOptionTable() {
+// 	query := `
+// 		CREATE TABLE IF NOT EXISTS options (
+// 			id SERIAL PRIMARY KEY,
+// 			text TEXT NOT NULL,
+// 			image TEXT,
+// 			question_id INTEGER NOT NULL REFERENCES questions(id),
+// 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+// 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+// 		);
+// 	`
+// 	_, err := DB.Exec(context.Background(), query)
+// 	if err != nil {
+// 		log.Fatalf("Failed to create 'options' table: %v", err)
+// 	}
 
-	fmt.Println("'options' table created successfully.")
-}
+// 	fmt.Println("'options' table created successfully.")
+// }
 
 func createBoardListTable() {
 	query := `
