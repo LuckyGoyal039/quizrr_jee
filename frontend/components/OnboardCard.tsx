@@ -54,7 +54,7 @@ function OnboardCard() {
   const [userToken, setUserToken] = useState("");
 
   const userKeys = [
-    "display_name",
+    "displayname",
     "phone_no",
     "country",
     "state",
@@ -207,7 +207,7 @@ function OnboardCard() {
     const user = fetchUser();
 
     //   {
-    //     "display_name": "",
+    //     "displayname": "",
     //     "phone_no": "1234567890",
     //     "country": "india",
     //     "state": "Bihar",

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,7 +11,7 @@ import (
 
 // AuthMiddleware checks for a valid JWT token
 func AuthMiddleware(c *fiber.Ctx) error {
-	var jwtSecret = []byte("your_secret_key")
+	var jwtSecret = os.Getenv("JWT_SECRET")
 	authHeader := c.Get("Authorization")
 
 	if authHeader == "" {
@@ -25,7 +26,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return jwtSecret, nil
+		return []byte(jwtSecret), nil
 	})
 
 	if err != nil || !token.Valid {
