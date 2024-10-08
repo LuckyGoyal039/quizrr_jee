@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"time"
 
@@ -40,7 +41,7 @@ type BoardList struct {
 type ProfileData struct {
 	UserID      uint           `json:"user_id"`
 	Username    string         `json:"username"`
-	DisplayName sql.NullString `json:"display_name"`
+	DisplayName sql.NullString `json:"displayname"`
 	Email       string         `json:"email"`
 	PhoneNo     sql.NullString `json:"phone_no"`
 	Country     sql.NullString `json:"country"`
@@ -61,7 +62,7 @@ type Notebook struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-var jwtSecret = []byte("your_secret_key")
+var jwtSecret = os.Getenv("JWT_SECRET")
 
 func Register(c *fiber.Ctx) error {
 	// Parse request body
@@ -178,6 +179,12 @@ func Login(c *fiber.Ctx) error {
 }
 
 func generateJWTToken(user UserDetails) (string, error) {
+	// Ensure that the JWT secret is fetched correctly
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		return "", fmt.Errorf("JWT_SECRET environment variable is not set")
+	}
+
 	// Create a new JWT token with the claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":       user.ID,
@@ -186,8 +193,8 @@ func generateJWTToken(user UserDetails) (string, error) {
 		"exp":      time.Now().Add(time.Hour * 72).Unix(), // Token expires in 72 hours
 	})
 
-	// Sign the token with the secret key
-	tokenString, err := token.SignedString(jwtSecret)
+	// Sign the token with the secret key (convert jwtSecret to []byte)
+	tokenString, err := token.SignedString([]byte(jwtSecret))
 	if err != nil {
 		return "", err
 	}
@@ -245,7 +252,8 @@ func GetAllProfileData(c *fiber.Ctx) error {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return []byte("your_secret_key"), nil
+
+		return []byte(jwtSecret), nil
 	})
 
 	if err != nil || !token.Valid {
@@ -312,17 +320,17 @@ func GetAllProfileData(c *fiber.Ctx) error {
 
 	// Return the profile data as a JSON response
 	return c.JSON(fiber.Map{
-		"user_id":      profileData.UserID,
-		"username":     profileData.Username,
-		"display_name": profileData.DisplayName.String, // Use .String for sql.NullString
-		"email":        profileData.Email,
-		"phone_no":     profileData.PhoneNo.String,
-		"country":      profileData.Country.String,
-		"state":        profileData.State.String,
-		"city":         profileData.City.String,
-		"pin_code":     profileData.PinCode.String,
-		"standard":     profileData.Standard.String,
-		"board":        profileData.Board.String,
+		"user_id":     profileData.UserID,
+		"username":    profileData.Username,
+		"displayname": profileData.DisplayName.String, // Use .String for sql.NullString
+		"email":       profileData.Email,
+		"phone_no":    profileData.PhoneNo.String,
+		"country":     profileData.Country.String,
+		"state":       profileData.State.String,
+		"city":        profileData.City.String,
+		"pin_code":    profileData.PinCode.String,
+		"standard":    profileData.Standard.String,
+		"board":       profileData.Board.String,
 	})
 }
 
@@ -334,12 +342,14 @@ func SetPortfolioData(c *fiber.Ctx) error {
 	}
 	tokenStr = tokenStr[7:] // Skip "Bearer "
 
+	var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+
 	// Parse and validate the token
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return []byte("your_secret_key"), nil // Use your actual secret key
+		return jwtSecret, nil // Use your actual secret key
 	})
 
 	if err != nil || !token.Valid {
@@ -370,13 +380,14 @@ func SetPortfolioData(c *fiber.Ctx) error {
 
 	// Parse the x-www-form-urlencoded input data
 	input := new(struct {
-		Board    string `form:"board"`
-		PhoneNo  string `form:"phone_no"`
-		Country  string `form:"country"`
-		State    string `form:"state"`
-		City     string `form:"city"`
-		PinCode  string `form:"pincode"`
-		Standard string `form:"standard"`
+		Board       string `form:"board"`
+		PhoneNo     string `form:"phone_no"`
+		Country     string `form:"country"`
+		State       string `form:"state"`
+		City        string `form:"city"`
+		PinCode     string `form:"pincode"`
+		Standard    string `form:"standard"`
+		DisplayName string `form:"displayname"` // Add display_name here
 	})
 
 	// Use BodyParser to parse the body directly into the struct
@@ -387,13 +398,14 @@ func SetPortfolioData(c *fiber.Ctx) error {
 
 	// Create a map from the struct
 	parsedInput := map[string]interface{}{
-		"board":    input.Board,
-		"phone_no": input.PhoneNo,
-		"country":  input.Country,
-		"state":    input.State,
-		"city":     input.City,
-		"pincode":  input.PinCode,
-		"standard": input.Standard,
+		"board":       input.Board,
+		"phone_no":    input.PhoneNo,
+		"country":     input.Country,
+		"state":       input.State,
+		"city":        input.City,
+		"pincode":     input.PinCode,
+		"standard":    input.Standard,
+		"displayname": input.DisplayName, // Include display_name here
 	}
 
 	// Ensure that exactly one property is provided for the update
@@ -402,7 +414,7 @@ func SetPortfolioData(c *fiber.Ctx) error {
 	var value interface{}
 
 	for key, val := range parsedInput {
-		if val != "" { // Only consider non-empty fields
+		if val != "" {
 			count++
 			column = key
 			value = val
@@ -413,25 +425,36 @@ func SetPortfolioData(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Only one property should be provided"})
 	}
 
-	// Validate the column being updated
-	allowedColumns := map[string]bool{
+	// Define allowed columns for profiles and users tables
+	allowedProfileColumns := map[string]bool{
 		"phone_no": true, "country": true, "state": true, "city": true,
 		"pincode": true, "standard": true, "board": true,
 	}
-	if !allowedColumns[column] {
+	allowedUserColumns := map[string]bool{
+		"displayname": true,
+	}
+
+	// Update the appropriate table based on the column
+	if allowedProfileColumns[column] {
+		// Update the profile table if the column belongs to profiles
+		query := fmt.Sprintf(`UPDATE profiles SET %s = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, column)
+		_, err = database.DB.Exec(context.Background(), query, value, userID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update profile data"})
+		}
+	} else if allowedUserColumns[column] {
+		// Update the users table if the column belongs to users
+		query := fmt.Sprintf(`UPDATE users SET %s = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, column)
+		_, err = database.DB.Exec(context.Background(), query, value, userID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update user data"})
+		}
+	} else {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid property"})
 	}
 
-	// Update the profile table with the new value
-	query := fmt.Sprintf(`UPDATE profiles SET %s = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, column)
-	_, err = database.DB.Exec(context.Background(), query, value, userID)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update profile data"})
-	}
-
-	// Fetch the updated profile data
 	var profileData ProfileData
-	fetchQuery := `
+	fetchProfileQuery := `
 		SELECT 
 			id,
 			phone_no,
@@ -445,7 +468,7 @@ func SetPortfolioData(c *fiber.Ctx) error {
 		FROM profiles
 		WHERE id = $1
 	`
-	row := database.DB.QueryRow(context.Background(), fetchQuery, userID)
+	row := database.DB.QueryRow(context.Background(), fetchProfileQuery, userID)
 	if err := row.Scan(
 		&profileData.UserID,
 		&profileData.PhoneNo,
@@ -460,7 +483,17 @@ func SetPortfolioData(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching updated profile data"})
 	}
 
-	// Return the updated profile data as a JSON response
+	// Fetch display_name from users table
+	var displayName sql.NullString
+	fetchUserQuery := `SELECT displayname FROM users WHERE id = $1`
+	err = database.DB.QueryRow(context.Background(), fetchUserQuery, userID).Scan(&displayName)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching user data"})
+	}
+
+	// Add display_name to the response
+	profileData.DisplayName = displayName
+
 	return c.JSON(profileData)
 }
 
@@ -477,7 +510,7 @@ func GetNotesList(c *fiber.Ctx) error {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return []byte("your_secret_key"), nil // Use your actual secret key
+		return []byte(jwtSecret), nil // Use your actual secret key
 	})
 
 	if err != nil || !token.Valid {
@@ -558,7 +591,7 @@ func CreateNote(c *fiber.Ctx) error {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return []byte("your_secret_key"), nil // Use your actual secret key
+		return []byte(jwtSecret), nil // Use your actual secret key
 	})
 
 	if err != nil || !token.Valid {
@@ -630,7 +663,7 @@ func DeleteNote(c *fiber.Ctx) error {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return []byte("your_secret_key"), nil // Use your actual secret key
+		return []byte(jwtSecret), nil // Use your actual secret key
 	})
 
 	if err != nil || !token.Valid {
@@ -688,7 +721,7 @@ func UpdateNote(c *fiber.Ctx) error {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return []byte("your_secret_key"), nil // Use your actual secret key
+		return []byte(jwtSecret), nil // Use your actual secret key
 	})
 
 	if err != nil || !token.Valid {
