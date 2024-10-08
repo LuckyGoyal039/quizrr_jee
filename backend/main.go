@@ -25,8 +25,8 @@ func main() {
 
 	app := fiber.New()
 
-	routes.AuthRoutes(app)
 	app.Use(cors.New())
+	routes.AuthRoutes(app)
 
 	app.Use(middleware.AuthMiddleware)
 

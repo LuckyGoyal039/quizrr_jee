@@ -88,7 +88,7 @@ func Register(c *fiber.Ctx) error {
 		})
 	}
 
-	// Insert user into the database using raw SQL
+	// Insert user into the users table using raw SQL
 	query := `
 		INSERT INTO users (username, email, password)
 		VALUES ($1, $2, $3) RETURNING id
@@ -97,11 +97,23 @@ func Register(c *fiber.Ctx) error {
 	// Execute the query with the hashed password
 	var userID int
 	err = database.DB.QueryRow(context.Background(), query, requestBody.Username, requestBody.Email, hashedPassword).Scan(&userID)
-
 	if err != nil {
 		log.Println("Failed to create user:", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to register user",
+		})
+	}
+
+	// Insert corresponding row into the profiles table with default/null values
+	profileQuery := `
+		INSERT INTO profiles (user_id) 
+		VALUES ($1)
+	`
+	_, err = database.DB.Exec(context.Background(), profileQuery, userID)
+	if err != nil {
+		log.Println("Failed to create profile:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to create user profile",
 		})
 	}
 
@@ -113,7 +125,7 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Login(c *fiber.Ctx) error {
-	// Parse the login request body
+	// Parse request body
 	var requestBody UserLoginRequest
 	if err := c.BodyParser(&requestBody); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -159,6 +171,32 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
+	// Fetch profile data for the logged-in user
+	var profile ProfileData
+	profileQuery := `
+		SELECT 
+			phone_no, country, state, city, pincode, standard, board, onboarding
+		FROM profiles
+		WHERE user_id = $1
+	`
+	err = database.DB.QueryRow(context.Background(), profileQuery, user.ID).Scan(
+		&profile.PhoneNo,
+		&profile.Country,
+		&profile.State,
+		&profile.City,
+		&profile.PinCode,
+		&profile.Standard,
+		&profile.Board,
+		&profile.OnBoarding,
+	)
+	if err != nil {
+		log.Println("Failed to retrieve profile data:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Could not retrieve profile data",
+		})
+	}
+
+	// Generate JWT token
 	token, err := generateJWTToken(user)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -166,13 +204,23 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	// Respond with success and return the JWT token
+	// Respond with success and return the JWT token, user data, and profile data
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Login successful",
 		"user": fiber.Map{
 			"id":       user.ID,
 			"username": user.Username,
 			"email":    user.Email,
+		},
+		"profile": fiber.Map{
+			"phone_no":   profile.PhoneNo,
+			"country":    profile.Country,
+			"state":      profile.State,
+			"city":       profile.City,
+			"pincode":    profile.PinCode,
+			"standard":   profile.Standard,
+			"board":      profile.Board,
+			"onboarding": profile.OnBoarding,
 		},
 		"token": token,
 	})
@@ -248,12 +296,14 @@ func GetBoardList(c *fiber.Ctx) error {
 func GetAllProfileData(c *fiber.Ctx) error {
 	// Extract the token from the Authorization header
 	tokenStr := c.Get("Authorization")[7:] // Skip "Bearer "
+
+	var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
 
-		return []byte(jwtSecret), nil
+		return jwtSecret, nil
 	})
 
 	if err != nil || !token.Valid {
@@ -504,13 +554,14 @@ func GetNotesList(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing or invalid token"})
 	}
 	tokenStr = tokenStr[7:] // Skip "Bearer "
+	var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 	// Parse and validate the token
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return []byte(jwtSecret), nil // Use your actual secret key
+		return jwtSecret, nil // Use your actual secret key
 	})
 
 	if err != nil || !token.Valid {
