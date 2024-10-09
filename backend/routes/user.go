@@ -17,6 +17,8 @@ func UserRoutes(app *fiber.App) {
 	userGroup.Post("/my-notes", user.CreateNote)
 	userGroup.Delete("/my-notes/:id", user.DeleteNote)
 	userGroup.Patch("/my-notes/:id", user.UpdateNote)
+	userGroup.Get("/test-list", user.GetTestSeriesList)
+	userGroup.Get("/test-data/:testId", user.GetTestData)
 
 	// get list of all test
 

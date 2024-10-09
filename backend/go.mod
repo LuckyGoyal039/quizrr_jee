@@ -4,12 +4,12 @@ go 1.22.3
 
 require (
 	github.com/d-vignesh/go-jwt-auth v0.0.0-20201213154834-8d28638128fe
-	github.com/gofiber/fiber v1.14.6
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/ilyakaznacheev/cleanenv v1.5.0
+	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
@@ -20,12 +20,13 @@ require (
 require (
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
-	github.com/gofiber/utils v0.0.10 // indirect
+	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/google/uuid v1.5.0 // indirect
-	github.com/gorilla/schema v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
@@ -37,9 +38,11 @@ require (
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/sendgrid/rest v2.6.2+incompatible // indirect
+	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/spf13/afero v1.1.2 // indirect
 	github.com/spf13/cast v1.3.0 // indirect
 	github.com/spf13/jwalterweatherman v1.0.0 // indirect

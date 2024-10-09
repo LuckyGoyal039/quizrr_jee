@@ -137,7 +137,8 @@ func createTestSeriesTable() {
 			description TEXT,
 			duration INTEGER NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			questions INTEGER[] 
 		);
 	`
 	_, err := DB.Exec(context.Background(), query)
@@ -171,11 +172,18 @@ func createTestResultTable() {
 }
 
 func createQuestionTable() {
+	// Create the 'questions' table without the ON UPDATE clause
 	query := `
-		CREATE TABLE IF NOT EXISTS test_series_questions (
-			test_series_id INTEGER NOT NULL REFERENCES test_series(id) ON DELETE CASCADE,
-			question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
-			PRIMARY KEY (test_series_id, question_id)
+		CREATE TABLE IF NOT EXISTS questions (
+			id SERIAL PRIMARY KEY,
+			text TEXT NOT NULL,
+			image TEXT,
+			subject VARCHAR(255),
+			section VARCHAR(255),
+			options JSONB NOT NULL,
+			answer JSONB NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);
 	`
 	_, err := DB.Exec(context.Background(), query)
@@ -183,7 +191,49 @@ func createQuestionTable() {
 		log.Fatalf("Failed to create 'questions' table: %v", err)
 	}
 
-	fmt.Println("'questions' table created successfully.")
+	// Drop the trigger if it already exists
+	dropTrigger := `
+		DO $$ 
+		BEGIN 
+			IF EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_updated_at') THEN
+				-- Drop the existing trigger
+				EXECUTE 'DROP TRIGGER set_updated_at ON questions';
+			END IF;
+		END $$;
+	`
+	_, err = DB.Exec(context.Background(), dropTrigger)
+	if err != nil {
+		log.Fatalf("Failed to drop existing 'updated_at' trigger: %v", err)
+	}
+
+	// Create the trigger function to automatically update the 'updated_at' field
+	triggerFunc := `
+		CREATE OR REPLACE FUNCTION update_updated_at_column()
+		RETURNS TRIGGER AS $$
+		BEGIN
+			NEW.updated_at = NOW();
+			RETURN NEW;
+		END;
+		$$ LANGUAGE plpgsql;
+	`
+	_, err = DB.Exec(context.Background(), triggerFunc)
+	if err != nil {
+		log.Fatalf("Failed to create 'updated_at' trigger function: %v", err)
+	}
+
+	// Create the trigger that fires on every UPDATE
+	trigger := `
+		CREATE TRIGGER set_updated_at
+		BEFORE UPDATE ON questions
+		FOR EACH ROW
+		EXECUTE FUNCTION update_updated_at_column();
+	`
+	_, err = DB.Exec(context.Background(), trigger)
+	if err != nil {
+		log.Fatalf("Failed to create 'updated_at' trigger: %v", err)
+	}
+
+	fmt.Println("'questions' table and 'updated_at' trigger created successfully.")
 }
 
 // func createOptionTable() {
