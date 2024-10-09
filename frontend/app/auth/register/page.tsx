@@ -61,7 +61,7 @@ function page() {
       //   setUser(user); // Set the fetched country user
       console.log("USER ", user);
 
-   
+
 
 
       router.push('/auth/login');
@@ -71,57 +71,111 @@ function page() {
   };
 
   return (
-    <div>
-      <div className="">
-        <h1>Sign Up</h1>
-        <p>Create a new Quizrr account</p>
-      </div>
-      <div className="">
-        <div className="">
-          <p>Name</p>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            type="text"
-            placeholder="Your Name"
-          />
-        </div>
-        <div className="">
-          <p>Email Address</p>
-          <Input
-            value={mail}
-            onChange={(e) => setMail(e.target.value)}
-            type="email"
-            placeholder="name@address.com"
-          />
-        </div>
+    <>
+      <div className="flex justify-center items-center h-lvh bg-[#effbfb]">
+        <div className="w-96 bg-[#fff] px-8 py-8 rounded-md">
+          <div className="">
+            <h1 className="w-full text-center text-3xl underline">Sign Up</h1>
+          </div>
+          <div className="flex flex-col gap-5 my-5">
+            <div className="flex flex-col gap-1">
+              <p>Name</p>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                type="text"
+                placeholder="Your Name"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <p>Email Address</p>
+              <Input
+                value={mail}
+                onChange={(e) => setMail(e.target.value)}
+                type="email"
+                placeholder="name@address.com"
+              />
+            </div>
 
-        <div className="">
-          <p>Password</p>
-          <Input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            type="password"
-            placeholder="Enter your password"
-          />
-        </div>
-        <div className="">
-          <p>Confirm Password</p>
-          <Input
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            type="password"
-            placeholder="Enter your password again"
-          />
-        </div>
-        <div className="">
-          <Button onClick={handleSubmit}>Sign in</Button>
-        </div>
-        <div className="">
-            <Link href={'/auth/login'} >Login?</Link>
+            <div className="flex flex-col gap-1">
+              <p>Password</p>
+              <Input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                placeholder="Enter your password"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <p>Confirm Password</p>
+              <Input
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                type="password"
+                placeholder="Enter your password again"
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleSubmit}>Submit</Button>
+            </div>
+
+            <p className="text-center text-sm">Already have account? <Link href="/auth/login" className="text-blue-500">Login</Link></p>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* <div>
+        <div className="">
+          <h1>Sign Up</h1>
+          <p>Create a new Quizrr account</p>
+        </div>
+        <div className="">
+          <div className="">
+            <p>Name</p>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              type="text"
+              placeholder="Your Name"
+            />
+          </div>
+          <div className="">
+            <p>Email Address</p>
+            <Input
+              value={mail}
+              onChange={(e) => setMail(e.target.value)}
+              type="email"
+              placeholder="name@address.com"
+            />
+          </div>
+
+          <div className="">
+            <p>Password</p>
+            <Input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              placeholder="Enter your password"
+            />
+          </div>
+          <div className="">
+            <p>Confirm Password</p>
+            <Input
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              type="password"
+              placeholder="Enter your password again"
+            />
+          </div>
+          <div className="">
+            <Button onClick={handleSubmit}>Sign in</Button>
+          </div>
+          <div className="">
+            <Link href={'/auth/login'} >Login?</Link>
+          </div>
+        </div>
+      </div> */}
+    </>
   );
 }
 export default page;

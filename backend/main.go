@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -32,9 +33,12 @@ func main() {
 
 	routes.UserRoutes(app)
 
-	// shutdown gracefully
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
 	go func() {
-		if err := app.Listen(":3000"); err != nil {
+		if err := app.Listen(fmt.Sprintf(":%s", port)); err != nil {
 			log.Printf("Server stopped with error: %v\n", err)
 		}
 	}()

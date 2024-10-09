@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Link } from "react-scroll";
 
 function page() {
   const router = useRouter();
@@ -91,7 +91,7 @@ function page() {
             />
           </div>
           <div className="flex justify-end">
-            <Button onClick={handleSubmit}>Sign in</Button>
+            <Button onClick={handleSubmit}>Submit</Button>
           </div>
 
           <p className="text-center text-sm">New User <Link href="/auth/register" className="text-blue-500">Sign Up</Link></p>
