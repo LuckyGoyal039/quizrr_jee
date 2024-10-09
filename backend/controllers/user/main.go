@@ -5,12 +5,15 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/jackc/pgx"
+	"github.com/lib/pq"
 	database "github.com/quizrr/db"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -796,4 +799,93 @@ func UpdateNote(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(updatedNote)
+}
+
+// Question struct to hold question details
+type TestSeries struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Duration    int    `json:"duration"`
+}
+
+// GetTestSeriesList retrieves all test series
+func GetTestSeriesList(c *fiber.Ctx) error {
+	// Prepare the query to get all test series
+	query := `
+		SELECT id, name, description, duration
+		FROM test_series;
+	`
+
+	// Execute the query
+	rows, err := database.DB.Query(context.Background(), query)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve test series"})
+	}
+	defer rows.Close()
+
+	// Prepare a slice to hold the test series results
+	var testSeriesList []TestSeries
+
+	// Iterate through the result set
+	for rows.Next() {
+		var ts TestSeries
+
+		// Scan the values into the struct
+		if err := rows.Scan(&ts.ID, &ts.Name, &ts.Description, &ts.Duration); err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to scan test series"})
+		}
+
+		// Append the test series to the list
+		testSeriesList = append(testSeriesList, ts)
+	}
+
+	// Check for errors during row iteration
+	if err = rows.Err(); err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Error while iterating rows"})
+	}
+
+	// Return the test series list as a response
+	return c.Status(http.StatusOK).JSON(testSeriesList)
+}
+
+// GetTestSeriesByID retrieves a test series by its ID
+func GetTestData(c *fiber.Ctx) error {
+	// Define the TestSeries struct
+	type TestSeries struct {
+		ID          int       `json:"id"`
+		Name        string    `json:"name"`
+		Description string    `json:"description"`
+		Duration    int       `json:"duration"`
+		Questions   []int     `json:"questions"`
+		CreatedAt   time.Time `json:"created_at"`
+		UpdatedAt   time.Time `json:"updated_at"`
+	}
+
+	// Get the testId from the URL parameters
+	testID := c.Params("testId")
+
+	// Prepare the query to get the test series by ID
+	query := `
+		SELECT id, name, description, duration, created_at, updated_at, questions
+		FROM test_series
+		WHERE id = $1;
+	`
+
+	// Create a variable to hold the test series result
+	var ts TestSeries
+
+	// Execute the query
+	err := database.DB.QueryRow(context.Background(), query, testID).Scan(
+		&ts.ID, &ts.Name, &ts.Description, &ts.Duration, &ts.CreatedAt, &ts.UpdatedAt, pq.Array(&ts.Questions),
+	)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Test series not found"})
+		}
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve test series"})
+	}
+
+	// Return the test series as a response
+	return c.Status(http.StatusOK).JSON(ts)
 }
