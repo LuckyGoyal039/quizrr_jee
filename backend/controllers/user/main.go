@@ -13,7 +13,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/jackc/pgx"
-	"github.com/lib/pq"
 	database "github.com/quizrr/db"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -857,27 +856,39 @@ func GetTestData(c *fiber.Ctx) error {
 		Name        string    `json:"name"`
 		Description string    `json:"description"`
 		Duration    int       `json:"duration"`
-		Questions   []int     `json:"questions"`
+		Questions   []int     `json:"questions"` // Array of question IDs
 		CreatedAt   time.Time `json:"created_at"`
 		UpdatedAt   time.Time `json:"updated_at"`
 	}
 
-	// Get the testId from the URL parameters
+	// Define the updated Question struct
+	type Question struct {
+		ID        int                    `json:"id"`
+		Text      string                 `json:"text"`
+		Image     *string                `json:"image,omitempty"`
+		Subject   string                 `json:"subject"`
+		Section   string                 `json:"section"`
+		Options   map[string]interface{} `json:"options"`
+		Answer    map[string]interface{} `json:"answer"`
+		CreatedAt time.Time              `json:"created_at"`
+		UpdatedAt time.Time              `json:"updated_at"`
+	}
+
+	// Get the testID from URL parameters
 	testID := c.Params("testId")
 
-	// Prepare the query to get the test series by ID
+	// Query to retrieve the test series by ID
 	query := `
 		SELECT id, name, description, duration, created_at, updated_at, questions
 		FROM test_series
 		WHERE id = $1;
 	`
 
-	// Create a variable to hold the test series result
 	var ts TestSeries
 
-	// Execute the query
+	// Execute query to get TestSeries data
 	err := database.DB.QueryRow(context.Background(), query, testID).Scan(
-		&ts.ID, &ts.Name, &ts.Description, &ts.Duration, &ts.CreatedAt, &ts.UpdatedAt, pq.Array(&ts.Questions),
+		&ts.ID, &ts.Name, &ts.Description, &ts.Duration, &ts.CreatedAt, &ts.UpdatedAt, &ts.Questions,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -886,6 +897,52 @@ func GetTestData(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve test series"})
 	}
 
-	// Return the test series as a response
+	// Fetch all the questions based on the IDs from ts.Questions
+	if len(ts.Questions) > 0 {
+		// Prepare query for questions using the array of question IDs
+		questionsQuery := `
+			SELECT id, text, image, subject, section, options, answer, created_at, updated_at
+			FROM questions
+			WHERE id = ANY($1);
+		`
+
+		// Create a slice to hold the questions data
+		var questions []Question
+
+		// Execute query to get all the questions
+		rows, err := database.DB.Query(context.Background(), questionsQuery, ts.Questions)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve questions"})
+		}
+		defer rows.Close()
+
+		// Iterate over the rows and scan each question into the slice
+		for rows.Next() {
+			var q Question
+			var image *string // Handle nullable image field
+			err := rows.Scan(&q.ID, &q.Text, &image, &q.Subject, &q.Section, &q.Options, &q.Answer, &q.CreatedAt, &q.UpdatedAt)
+			if err != nil {
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to scan question data"})
+			}
+			q.Image = image
+			questions = append(questions, q)
+		}
+
+		// Combine the test series data with the questions
+		response := fiber.Map{
+			"id":          ts.ID,
+			"name":        ts.Name,
+			"description": ts.Description,
+			"duration":    ts.Duration,
+			"created_at":  ts.CreatedAt,
+			"updated_at":  ts.UpdatedAt,
+			"questions":   questions, // Include full question details
+		}
+
+		// Return the combined data as JSON
+		return c.Status(http.StatusOK).JSON(response)
+	}
+
+	// If there are no questions, just return the test series data
 	return c.Status(http.StatusOK).JSON(ts)
 }
