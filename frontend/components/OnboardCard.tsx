@@ -2,7 +2,7 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "./ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -33,7 +33,73 @@ import { CountrySelect, PhoneInput } from "./PhoneInput";
 import { ScrollArea } from "./ui/scroll-area";
 import { SelectArea } from "./SelectArea";
 import { getHeapSpaceStatistics } from "v8";
+import Loader from "./loader";
 // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imx1Y2t5QGdtYWlsLmNvbSIsImV4cCI6MTcyODU2MzgwMywiaWQiOjEsInVzZXJuYW1lIjoiTHVja3kgR295YWwifQ.2Gwz97zdrfTTi_4kpze8LTUxR3Y3zcj2SHRJLKaTwuM
+
+const boards = [
+  "Indian School Certificate (ISC)",
+  "Maharashtra State Board of Secondary and Higher Secondary Education (MSBSHSE)",
+  "West Bengal Board of Secondary Education (WBBSE)",
+  "Uttar Pradesh Madhyamik Shiksha Parishad (UPMSP)",
+  "Board of School Education, Haryana (HBSE)",
+  "Assam Higher Secondary Education Council (AHSEC)",
+  "Goa Board of Secondary and Higher Secondary Education (GBSHSE)",
+  "Himachal Pradesh Board of School Education (HPBOSE)",
+  "Central Board of Secondary Education (CBSE)",
+  "Gujarat Secondary Education Board (GSEB)",
+  "Kerala Board of Public Examinations (KBPE)",
+  "Telangana Board of Secondary Education(TBSE)",
+  "Mizoram Board of School Education (MBSE)",
+  "Bihar School Examination Board (BSEB)",
+  "Punjab School Education Board (PSEB)",
+  "Jharkhand Academic Council (JAC)",
+  "National Institute of Open Schooling (NIOS)",
+  "Karnataka Secondary Education Examination Board (KSEEB)",
+  "Tamil Nadu State Board (TNSB)",
+  "Chhatisgarh Board Of Secondary Education (CGBSE)",
+  "Council of Higher Secondary Education, Odisha (CHSE)",
+  "Andhra Pradesh Board of Education (APBSE)",
+  "Rajasthan Board of Secondary Education (RBSE)",
+  "Madhya Pradesh Board of Secondary Education (MPBSE)",
+  "Board of Secondary Education, Manipur (BSEM)",
+  "Meghalaya Board of School Education (MBOSE)",
+  "Jammu and Kashmir Board of School Education (JKBOSE)",
+  "Others",
+];
+
+const SelectStandard = ({ setVal }: { setVal: Function }) => {
+  const [select, setSelect] = useState();
+
+  return (
+    <div className="flex justify-center gap-4">
+      <Input
+        value={"Class 11"}
+        readOnly
+        className="hover:border-black "
+        onClick={(e) => setVal(e.target.value)}
+      />
+      <Input
+        value={"Class 12"}
+        readOnly
+        className="hover:border-black"
+        onClick={(e) => setVal(e.target.value)}
+      />
+      <Input
+        value={"First Time Dropper"}
+        readOnly
+        className="hover:border-black"
+        onClick={(e) => setVal(e.target.value)}
+      />
+      <Input
+        value={"Second Time Dropper"}
+        readOnly
+        className="hover:border-black"
+        onClick={(e) => setVal(e.target.value)}
+      />
+    </div>
+  );
+};
+
 function OnboardCard() {
   const router = useRouter();
   const params = useSearchParams();
@@ -44,14 +110,14 @@ function OnboardCard() {
   const [val, setVal] = useState("");
 
   const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJ4aWxvbmE0MTAwQHJvd3BsYW50LmNvbSIsImFwaV90b2tlbiI6IlVTc1BfOGoySWRfTmRfVUpMZXl4U3hJcjdib3RNMENZWTh4anc0b2NDVkpzUGdMSlo4UEtRZnhhMFdZaV9meUhxYWcifSwiZXhwIjoxNzI4MzcxNzQ4fQ.kJ-LLVR4sg78Rkr89r3TDudTx8PvpEus2zuKuxvw1Dw";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJ4aWxvbmE0MTAwQHJvd3BsYW50LmNvbSIsImFwaV90b2tlbiI6IlVTc1BfOGoySWRfTmRfVUpMZXl4U3hJcjdib3RNMENZWTh4anc0b2NDVkpzUGdMSlo4UEtRZnhhMFdZaV9meUhxYWcifSwiZXhwIjoxNzI4NDY5MTcwfQ.UchwJoO5jo0OID7-1691_q1U88Pyb87NmtaWL8p-XsQ";
   const email = "test@example.com";
   // /user/my-notes
   const [country, setCountry] = useState([]);
   const [state, setState] = useState([]);
   const [city, setCity] = useState([]);
   const [user, setUser] = useState({});
-  const [userToken, setUserToken] = useState("");
+  // const [userToken, setUserToken] = useState("");
 
   const userKeys = [
     "displayname",
@@ -59,7 +125,7 @@ function OnboardCard() {
     "country",
     "state",
     "city",
-    "pin_code",
+    "pincode",
     "standard",
     "board",
   ];
@@ -134,7 +200,8 @@ function OnboardCard() {
   const fetchUser = async () => {
     try {
       setLoading(true);
-      const userRes = await axios.get(`http://localhost:3000/user/profile`, {
+      const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      const userRes = await axios.get(`${SERVER_BASE_URL}/user/profile`, {
         headers: {
           // Authorization: `Bearer ${userToken}`, // Set the Bearer token in the Authorization header
           Authorization: `Bearer ${localStorage.getItem("token")}`, // Set the Bearer token in the Authorization header
@@ -146,44 +213,55 @@ function OnboardCard() {
       setUser(userVal); // Set the fetched country userVal
       console.log("USER ", userVal);
 
+      if (step === 4) {
+        fetchState(
+          typeof userVal.country === "string"
+            ? userVal.country
+            : userVal.country.String
+        );
+      }
+      if (step === 5) {
+        fetchCity(userVal.state);
+      }
+
       if (
-        userVal?.display_name === "" &&
-        window.location.href !== window.location.origin + "/onboarding?step=1"
+        userVal?.displayname === "" &&
+        window.location.href !== window.location.origin + "/onboarding?step=1" && step > 1
       ) {
-        // window.location.href = "/onboarding?step=1";
+        window.location.href = "/onboarding?step=1";
       } else if (
         userVal?.phone_no === "" &&
-        window.location.href !== window.location.origin + "/onboarding?step=2"
+        window.location.href !== window.location.origin + "/onboarding?step=2" && step > 2
       ) {
         window.location.href = "/onboarding?step=2";
       } else if (
         userVal?.country === "" &&
-        window.location.href !== window.location.origin + "/onboarding?step=3"
+        window.location.href !== window.location.origin + "/onboarding?step=3" && step > 3
       ) {
         window.location.href = "/onboarding?step=3";
       } else if (
         userVal?.state === "" &&
-        window.location.href !== window.location.origin + "/onboarding?step=4"
+        window.location.href !== window.location.origin + "/onboarding?step=4" && step > 4
       ) {
         window.location.href = "/onboarding?step=4";
       } else if (
         userVal?.city === "" &&
-        window.location.href !== window.location.origin + "/onboarding?step=5"
+        window.location.href !== window.location.origin + "/onboarding?step=5" && step > 5
       ) {
         window.location.href = "/onboarding?step=5";
       } else if (
-        userVal?.pin_code === "" &&
-        window.location.href !== window.location.origin + "/onboarding?step=6"
+        userVal?.pincode === "" &&
+        window.location.href !== window.location.origin + "/onboarding?step=6" && step > 6
       ) {
         window.location.href = "/onboarding?step=6";
       } else if (
         userVal?.standard === "" &&
-        window.location.href !== window.location.origin + "/onboarding?step=7"
+        window.location.href !== window.location.origin + "/onboarding?step=7" && step > 7
       ) {
         window.location.href = "/onboarding?step=7";
       } else if (
         userVal?.board === "" &&
-        window.location.href !== window.location.origin + "/onboarding?step=8"
+        window.location.href !== window.location.origin + "/onboarding?step=8" && step > 8
       ) {
         window.location.href = "/onboarding?step=8";
       }
@@ -199,15 +277,16 @@ function OnboardCard() {
   useEffect(() => {
     const utoken = localStorage.getItem("token");
     if (!utoken) {
-      router.push("/login");
+      router.push("/auth/login");
       return;
     }
-    setUserToken(utoken);
+    // setUserToken(utoken);
     fetchCountry();
+
     const user = fetchUser();
 
     //   {
-    //     "displayname": "",
+    //     "display_name": "",
     //     "phone_no": "1234567890",
     //     "country": "india",
     //     "state": "Bihar",
@@ -221,13 +300,13 @@ function OnboardCard() {
     // }
   }, []);
 
-  useEffect(() => {
-    if (user?.country) fetchState(user.country);
-  }, [user]);
+  // useEffect(() => {
+  //   if (user?.country) fetchState(user.country);
+  // }, [user]);
 
-  useEffect(() => {
-    if (user?.state) fetchCity(user.state);
-  }, [user]);
+  // useEffect(() => {
+  //   if (user?.state) fetchCity(user.state);
+  // }, [user]);
 
   const [selin, setSelin] = useState([
     {
@@ -298,12 +377,25 @@ function OnboardCard() {
     {
       title: "In which class are you currently in?",
       subtitle: "",
-      comp: () => "",
+      comp: () => <SelectStandard setVal={setVal} />,
     },
     {
       title: "Please select your Class 12th Board",
       subtitle: "",
-      comp: () => "",
+      comp: (setVal) => (
+        <Select onValueChange={setVal}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select Board" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {boards.map((board) => (
+                <SelectItem value={board}>{board}</SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      ),
     },
   ]);
 
@@ -312,18 +404,12 @@ function OnboardCard() {
       toast({
         variant: "destructive",
         title: "Value cannot be empty",
-
-        // description: "There was a problem with your request.",
       });
       return;
     }
     setStep(step + 1);
     console.log("vvvval", val, country, state, city);
-    if (step + 1 > 8) {
-      setStep(1);
-      router.push(`/onboarding?step=${1}`);
-      return;
-    }
+
     // if (step === 4) {
     //   fetchState(country);
     // }
@@ -332,14 +418,15 @@ function OnboardCard() {
     // }
     // if (step === 6) {
     // }
-    const data = new URLSearchParams();
-    data.append(userKeys[step - 1], val);
-    console.log("av", data.toString(), { [userKeys[step - 1]]: val });
-
+    // const data = new URLSearchParams();
+    // data.append(userKeys[step - 1], val);
+    // console.log("avvv", data.toString(), { [userKeys[step - 1]]: val });
+    const data = new URLSearchParams({ [userKeys[step - 1]]: val });
+    const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL
     const userRes = await axios.patch(
-      `http://localhost:3000/user/profile`,
-      { [userKeys[step - 1]]: val },
-      // data,
+      `${SERVER_BASE_URL}/user/profile`,
+      // { [userKeys[step - 1]]: val },
+      data,
       // new URLSearchParams().append(userKeys[step-1], val),
       {
         headers: {
@@ -351,17 +438,29 @@ function OnboardCard() {
 
     const user = userRes.data;
     setUser(user); // Set the fetched country user
-    console.log("USER ", user);
+    console.log("USERzzz ", user);
     console.log("val", val);
+
+    if (step + 1 > 8) {
+      const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL
+      await axios.patch(
+        `${SERVER_BASE_URL}/user/profile`,
+        { onboarding: true },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      router.push(`/dashboard`);
+      return;
+    }
 
     window.location.href = `/onboarding?step=${step + 1}`;
   };
 
-  // switch (step) {
-  //   case 1:
   return (
-    <div className="flex flex-col items-center border relative p-6 mt-20">
-      {/* <div className="absolute -top-10 left-[45%]"> */}
+    <div className="flex flex-col items-center border relative p-6 w-[50%]">
       <div className="-mt-16">
         <div className="bg-[#bf360c] w-fit py-4 px-7 rounded-[100%]">
           <h1 className="text-white text-5xl">{email[0].toUpperCase()}</h1>
@@ -369,56 +468,38 @@ function OnboardCard() {
       </div>
       <div className="flex flex-col items-center mt-4">
         {loading ? (
-          <p>Loading Data...</p> // Show loading indicator while fetching
+          <div>
+            <Loader />
+          </div>
         ) : (
           <>
-            {JSON.stringify(val)}
-            {selin?.[step - 1] && <h1>{selin[step - 1].title}</h1>}
+            {selin?.[step - 1] && <h1 className="text-xl pb-2">{selin[step - 1].title}</h1>}
             {selin?.[step - 1] && <p>{selin[step - 1].subtitle}</p>}
-            {selin?.[step - 1] &&
-              selin[step - 1].comp(
-                step === 3
-                  ? country
-                  : step === 4
-                  ? state
-                  : step === 5
-                  ? city
-                  : undefined
-              )}
+            <div className="mt-3 w-full">
+              {selin?.[step - 1] &&
+
+                selin[step - 1].comp(
+                  step === 3
+                    ? country
+                    : step === 4
+                      ? state
+                      : step === 5
+                        ? city
+                        : step === 8
+                          ? setVal
+                          : undefined
+                )}
+            </div>
           </>
         )}
       </div>
-      <div className="">
+      <div className="mt-4">
         <Button onClick={handleClick}>Save & Next</Button>
       </div>
     </div>
   );
-  //   break;
-
-  // default:
-  //   break;
 }
 
-// return (
-//   <div className="flex flex-col items-center border relative p-6 mt-20">
-//     {/* <div className="absolute -top-10 left-[45%]"> */}
-//     <div className="-mt-16">
-//       <div className="bg-[#bf360c] w-fit py-4 px-7 rounded-[100%]">
-//         <h1 className="text-white text-5xl">{email[0].toUpperCase()}</h1>
-//       </div>
-//     </div>
-//     <div className="flex flex-col items-center mt-4">
-//       {JSON.stringify(val)}
-//       {selin?.[step - 1] && <h1>{selin[step - 1].title}</h1>}
-//       {selin?.[step - 1] && <p>{selin[step - 1].subtitle}</p>}
-//       {selin?.[step - 1] && selin[step - 1].comp()}
-//     </div>
-//     <div className="">
-//       <Button onClick={handleClick}>Save & Next</Button>
-//     </div>
-//   </div>
-// );
-// }
 export default OnboardCard;
 
 // xilona4100@rowplant.com

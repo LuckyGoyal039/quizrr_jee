@@ -38,7 +38,6 @@ function page() {
           variant: "destructive",
           title:
             "Fill all fields properly and password must be at least 8 characters",
-          // description: "There was a problem with your request.",
         });
         return;
       }
@@ -46,12 +45,11 @@ function page() {
         toast({
           variant: "destructive",
           title: "Password does not match",
-          // description: "There was a problem with your request.",
         });
         return;
       }
-
-      const userRes = await axios.post(`http://localhost:3000/user/register`, {
+      const SERVER_BASE_URL=process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+      const userRes = await axios.post(`${SERVER_BASE_URL}/user/register`, {
         username: name,
         email: mail,
         password: password,
@@ -72,7 +70,7 @@ function page() {
 
   return (
     <>
-      <div className="flex justify-center items-center h-lvh bg-[#effbfb]">
+      <div className="flex justify-center items-center h-lvh bg-[#f9fbfd]">
         <div className="w-96 bg-[#fff] px-8 py-8 rounded-md">
           <div className="">
             <h1 className="w-full text-center text-3xl underline">Sign Up</h1>

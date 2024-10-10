@@ -35,7 +35,9 @@ function page() {
         });
         return;
       }
-      const userRes = await axios.post(`http://localhost:3000/user/login`, {
+      
+      const SERVER_BASE_URL=process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+      const userRes = await axios.post(`${SERVER_BASE_URL}/user/login`, {
         email: mail,
         password: password,
       });
@@ -65,7 +67,7 @@ function page() {
   };
 
   return (
-    <div className="flex justify-center items-center h-lvh bg-[#effbfb]">
+    <div className="flex justify-center items-center h-lvh bg-[#f9fbfd]">
       <div className="w-96 bg-[#fff] px-8 py-8 rounded-md">
         <div className="">
           <h1 className="w-full text-center text-3xl underline">Sign in</h1>
