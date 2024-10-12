@@ -1,69 +1,46 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TestCard from "./testCard"; // Ensure the correct case for imports
+import axios from "axios";
 
 export default function TestList() {
-  const [testList, setTestList] = useState([{
-    batch: "September Batch",
-    target: "Target 99+ Percentile",
-    title: "JEE Main 2025 Test Series (Droppers)",
-    tests: [
-      '30 Full Tests',
-      '12 Quizrr Part Tests',
-      '471 Chapter-wise Tests & 2024 - 2020 PYQs as Mocks',
-    ],
-    buttonText: "Buy Now",
-    viewPacksText: "View Packs"
-  },
-  {
-    batch: "September Batch",
-    target: "Target 99+ Percentile",
-    title: "JEE Main 2025 Test Series (Droppers)",
-    tests: [
-      '30 Full Tests',
-      '12 Quizrr Part Tests',
-      '471 Chapter-wise Tests & 2024 - 2020 PYQs as Mocks',
-    ],
-    buttonText: "Buy Now",
-    viewPacksText: "View Packs"
-  },
-  {
-    batch: "September Batch",
-    target: "Target 99+ Percentile",
-    title: "JEE Main 2025 Test Series (Droppers)",
-    tests: [
-      '30 Full Tests',
-      '12 Quizrr Part Tests',
-      '471 Chapter-wise Tests & 2024 - 2020 PYQs as Mocks',
-    ],
-    buttonText: "Buy Now",
-    viewPacksText: "View Packs"
-  },
-  {
-    batch: "September Batch",
-    target: "Target 99+ Percentile",
-    title: "JEE Main 2025 Test Series (Droppers)",
-    tests: [
-      '30 Full Tests',
-      '12 Quizrr Part Tests',
-      '471 Chapter-wise Tests & 2024 - 2020 PYQs as Mocks',
-    ],
-    buttonText: "Buy Now",
-    viewPacksText: "View Packs"
-  },
-  {
-    batch: "September Batch",
-    target: "Target 99+ Percentile",
-    title: "JEE Main 2025 Test Series (Droppers)",
-    tests: [
-      '30 Full Tests',
-      '12 Quizrr Part Tests',
-      '471 Chapter-wise Tests & 2024 - 2020 PYQs as Mocks',
-    ],
-    buttonText: "Buy Now",
-    viewPacksText: "View Packs"
-  }]);
+  const [testList, setTestList] = useState([]);
+
+  async function getTestList() {
+    const token = localStorage.getItem("token");
+    const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+
+    try {
+      const resp = await axios.get(`${SERVER_BASE_URL}/user/test-list`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      const respData = resp.data;
+      console.log(respData);
+
+      // Transforming the response data into the desired format
+      const formattedData = respData.map(item => ({
+        batch: item.batch,
+        target: item.target,
+        title: item.name,  // Use 'name' as 'title'
+        tests: item.description.split('$*'),  // Split description to get tests array
+        buttonText: "Buy Now",
+        viewPacksText: "View Packs",
+      }));
+
+      // Set the transformed data to the state
+      setTestList(formattedData);
+    } catch (error) {
+      console.error("Error fetching test list:", error);
+    }
+  }
+  useEffect(() => {
+    getTestList();
+  }, [])
 
   return (
     <>

@@ -806,12 +806,14 @@ type TestSeries struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Duration    int    `json:"duration"`
+	Image       string `json:"image"`  // Added image field
+	Batch       string `json:"batch"`  // Added batch field
+	Target      string `json:"target"` // Added target field
 }
 
 func GetTestSeriesList(c *fiber.Ctx) error {
-
 	query := `
-		SELECT id, name, description, duration
+		SELECT id, name, description, duration, image, batch, target 
 		FROM test_series;
 	`
 	rows, err := database.DB.Query(context.Background(), query)
@@ -825,7 +827,8 @@ func GetTestSeriesList(c *fiber.Ctx) error {
 	for rows.Next() {
 		var ts TestSeries
 
-		if err := rows.Scan(&ts.ID, &ts.Name, &ts.Description, &ts.Duration); err != nil {
+		// Updated to include all fields from the query
+		if err := rows.Scan(&ts.ID, &ts.Name, &ts.Description, &ts.Duration, &ts.Image, &ts.Batch, &ts.Target); err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to scan test series"})
 		}
 

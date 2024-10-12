@@ -58,35 +58,51 @@ type TestSeries struct {
 	Image       string    `json:"image"`
 	Description string    `json:"description"`
 	Duration    int       `json:"duration"`
-	Questions   []int     `json:"questions"` // Store questions as an array of integers
+	Questions   []int     `json:"questions"`
+	Batch       string    `json:"batch"`
+	Target      string    `json:"target"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-// Function to create a new test series and return its details
 func CreateTest(c *fiber.Ctx) error {
-	// Parse request body into TestSeries struct
 	var input TestSeries
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format", "details": err.Error()})
 	}
 
-	// Prepare the query to insert the test series and return the inserted row details
 	query := `
-		INSERT INTO test_series (name, image, description, duration, questions, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-		RETURNING id, name, image, description, duration, questions, created_at, updated_at`
+        INSERT INTO test_series (name, image, description, duration, questions, batch, target, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        RETURNING id, name, image, description, duration, questions, batch, target, created_at, updated_at`
 
-	// Create a variable to hold the inserted test series details
 	var newTestSeries TestSeries
 
-	// Execute the query and return the inserted test series details
-	err := database.DB.QueryRow(context.Background(), query, input.Name, input.Image, input.Description, input.Duration, pq.Array(input.Questions)).Scan(
-		&newTestSeries.ID, &newTestSeries.Name, &newTestSeries.Image, &newTestSeries.Description, &newTestSeries.Duration, &newTestSeries.Questions, &newTestSeries.CreatedAt, &newTestSeries.UpdatedAt)
+	err := database.DB.QueryRow(
+		context.Background(),
+		query,
+		input.Name,
+		input.Image,
+		input.Description,
+		input.Duration,
+		pq.Array(input.Questions),
+		input.Batch,
+		input.Target,
+	).Scan(
+		&newTestSeries.ID,
+		&newTestSeries.Name,
+		&newTestSeries.Image,
+		&newTestSeries.Description,
+		&newTestSeries.Duration,
+		&newTestSeries.Questions,
+		&newTestSeries.Batch,
+		&newTestSeries.Target,
+		&newTestSeries.CreatedAt,
+		&newTestSeries.UpdatedAt,
+	)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create test series", "details": err.Error()})
 	}
 
-	// Return the inserted test series as a response
 	return c.Status(fiber.StatusOK).JSON(newTestSeries)
 }
