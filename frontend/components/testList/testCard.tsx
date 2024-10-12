@@ -31,10 +31,11 @@ const TestCard: React.FC<TestCardProps> = ({
             <div className="absolute inset-0 bg-white opacity-80"></div>
 
             <div className="relative p-5">
-                {/* Batch Label */}
-                <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
-                    {batch}
-                </div>
+                {
+                    batch && <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
+                        {batch}
+                    </div>
+                }
 
                 {/* Target Section */}
                 <h2 className="text-2xl font-bold text-yellow-500">{target}</h2>

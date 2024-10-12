@@ -130,17 +130,19 @@ func createProfileTable() {
 
 func createTestSeriesTable() {
 	query := `
-		CREATE TABLE IF NOT EXISTS test_series (
-			id SERIAL PRIMARY KEY,
-			name VARCHAR(100) NOT NULL,
-			image TEXT,
-			description TEXT,
-			duration INTEGER NOT NULL,
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			questions INTEGER[] 
-		);
-	`
+    CREATE TABLE IF NOT EXISTS test_series (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        image TEXT,
+        description TEXT,
+        duration INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        questions INTEGER[],
+        batch VARCHAR(100),    -- Added batch column
+        target VARCHAR(100)    -- Added target column
+    );
+`
 	_, err := DB.Exec(context.Background(), query)
 	if err != nil {
 		log.Fatalf("Failed to create 'test_series' table: %v", err)

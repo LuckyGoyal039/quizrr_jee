@@ -29,7 +29,13 @@ function Sidebar() {
             <aside id="logo-sidebar" className="fixed top-0 left-0 z-40 w-48 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
                 <div className="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
                     <Link href="/dashboard" className="flex items-center ps-2.5 mb-5">
-                        <Image src={QuizLogo} width={32} height={32} className="h-6 me-3 sm:h-7" alt="Flowbite Logo" />
+                        <Image
+                            src={QuizLogo}
+                            width={32}
+                            height={32}
+                            className="h-6 me-3 sm:h-7 bg-transparent"
+                            alt="Flowbite Logo"
+                        />
                         <span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">QUIZZR</span>
                     </Link>
 
