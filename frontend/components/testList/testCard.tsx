@@ -1,21 +1,27 @@
+'use client'
+
 import React from 'react';
 
 interface TestCardProps {
+    testId: string;
     batch: string;
     target: string;
     title: string;
     tests: string[];
     buttonText: string;
     viewPacksText: string;
+    onButtonClick: (testId: string) => void;  // Pass testId when the button is clicked
 }
 
 const TestCard: React.FC<TestCardProps> = ({
+    testId,
     batch,
     target,
     title,
     tests,
     buttonText,
     viewPacksText,
+    onButtonClick,
 }) => {
     return (
         <div className="relative max-w-sm rounded-lg overflow-hidden shadow-lg border border-gray-200 hover:shadow-xl hover:scale-105 transform transition duration-300">
@@ -31,11 +37,11 @@ const TestCard: React.FC<TestCardProps> = ({
             <div className="absolute inset-0 bg-white opacity-80"></div>
 
             <div className="relative p-5">
-                {
-                    batch && <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
+                {batch && (
+                    <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
                         {batch}
                     </div>
-                }
+                )}
 
                 {/* Target Section */}
                 <h2 className="text-2xl font-bold text-yellow-500">{target}</h2>
@@ -55,7 +61,10 @@ const TestCard: React.FC<TestCardProps> = ({
                     <button className="text-blue-500 underline hover:text-blue-700 transition">
                         {viewPacksText}
                     </button>
-                    <button className="bg-pink-500 text-white px-4 py-2 rounded-md hover:bg-pink-600 transition">
+                    <button
+                        className="bg-pink-500 text-white px-4 py-2 rounded-md hover:bg-pink-600 transition"
+                        onClick={() => onButtonClick(testId)}  // Pass testId when clicked
+                    >
                         {buttonText}
                     </button>
                 </div>
