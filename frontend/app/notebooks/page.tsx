@@ -7,7 +7,7 @@ const Page: React.FC = () => {
     <div className="flex h-screen bg-gray-100">
       <Sidebar />
       <main className="flex-1 p-4 sm:ml-48 overflow-y-auto">
-        {/* <Notes /> */}
+        <Notes />
       </main>
     </div>
   );
