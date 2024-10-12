@@ -7,6 +7,7 @@ import Hero from "@/components/Hero";
 import InquiryInfo from "@/components/InquiryInfo";
 import Navbar from "@/components/Navbar";
 import Pricing from "@/components/Pricing";
+import Sidebar from "@/components/sidebar";
 import Syllabus from "@/components/Syllabus";
 import Testimonials from "@/components/Testimonials";
 import TestSeries from "@/components/TestSeries";

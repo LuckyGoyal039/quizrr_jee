@@ -1,30 +1,36 @@
 'use client'
-
-import { useState, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Loader from '../loader'
 import { Button } from '../ui/button'
 import InputComponent from './InputComp'
-import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function OnBoarding() {
     const router = useRouter();
-    const searchParams = useSearchParams()
+    const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
-    const [stepNo, setStepNo] = useState(1);
     const email = "Lucky";
+    const stepNo = useRef(1);
 
     useEffect(() => {
         const step = searchParams.get('step');
-        if (!step) {
-            return;
+        if (step) {
+            stepNo.current = Number(step);
         }
-        setStepNo(Number(step));
-
     }, [searchParams]);
 
-    function handleClick() {
-        
-    }
+    const handleNext = useCallback(async () => {
+        setLoading(true);
+        try {
+            const nextStep = stepNo.current + 1;
+            router.push(`?step=${nextStep}`);
+            stepNo.current = nextStep;
+        } catch (error) {
+            console.error('Error navigating to next step:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [router]);
 
     return (
         <div className="flex flex-col items-center border relative p-6 w-[50%]">
@@ -34,19 +40,10 @@ export default function OnBoarding() {
                 </div>
             </div>
             <div className="flex flex-col items-center mt-4">
-                {loading ? <Loader /> : (
-                    <>
-                        {stepNo ? (
-                            <InputComponent stepNo={stepNo} />
-                        ) : (
-                            <p>Loading step...</p>
-                        )}
-                        {/* You can add your other components here */}
-                    </>
-                )}
+                {loading ? <Loader /> : <InputComponent stepNo={stepNo.current} />}
             </div>
             <div className="mt-4">
-                <Button onClick={handleClick}>Save & Next</Button>
+                <Button onClick={handleNext}>Save & Next</Button>
             </div>
         </div>
     );

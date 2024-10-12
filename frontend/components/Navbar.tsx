@@ -76,7 +76,7 @@ function Navbar() {
               </Link>
             </div>
             <div className="">
-              <Link href={"/login"}>
+              <Link href={"/auth/login"}>
                 {/* change */}
                 <Button className="bg-blue-500">Login</Button>
               </Link>

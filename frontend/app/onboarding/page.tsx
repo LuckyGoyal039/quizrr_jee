@@ -7,8 +7,8 @@ function page() {
   return (
 
     <div className="flex justify-center items-center h-full">
-      <OnBoarding />
-      {/* <OnboardCard /> */}
+      {/* <OnBoarding /> */}
+      <OnboardCard />
       {/* <OnboardCard2 /> */}
       {/* <Notebook /> */}
     </div>

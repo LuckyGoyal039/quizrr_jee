@@ -13,7 +13,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/jackc/pgx"
-	"github.com/lib/pq"
 	database "github.com/quizrr/db"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -809,47 +808,37 @@ type TestSeries struct {
 	Duration    int    `json:"duration"`
 }
 
-// GetTestSeriesList retrieves all test series
 func GetTestSeriesList(c *fiber.Ctx) error {
-	// Prepare the query to get all test series
+
 	query := `
 		SELECT id, name, description, duration
 		FROM test_series;
 	`
-
-	// Execute the query
 	rows, err := database.DB.Query(context.Background(), query)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve test series"})
 	}
 	defer rows.Close()
 
-	// Prepare a slice to hold the test series results
 	var testSeriesList []TestSeries
 
-	// Iterate through the result set
 	for rows.Next() {
 		var ts TestSeries
 
-		// Scan the values into the struct
 		if err := rows.Scan(&ts.ID, &ts.Name, &ts.Description, &ts.Duration); err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to scan test series"})
 		}
 
-		// Append the test series to the list
 		testSeriesList = append(testSeriesList, ts)
 	}
 
-	// Check for errors during row iteration
 	if err = rows.Err(); err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Error while iterating rows"})
 	}
 
-	// Return the test series list as a response
 	return c.Status(http.StatusOK).JSON(testSeriesList)
 }
 
-// GetTestSeriesByID retrieves a test series by its ID
 func GetTestData(c *fiber.Ctx) error {
 	// Define the TestSeries struct
 	type TestSeries struct {
@@ -857,27 +846,39 @@ func GetTestData(c *fiber.Ctx) error {
 		Name        string    `json:"name"`
 		Description string    `json:"description"`
 		Duration    int       `json:"duration"`
-		Questions   []int     `json:"questions"`
+		Questions   []int     `json:"questions"` // Array of question IDs
 		CreatedAt   time.Time `json:"created_at"`
 		UpdatedAt   time.Time `json:"updated_at"`
 	}
 
-	// Get the testId from the URL parameters
+	// Define the updated Question struct
+	type Question struct {
+		ID        int                    `json:"id"`
+		Text      string                 `json:"text"`
+		Image     *string                `json:"image,omitempty"`
+		Subject   string                 `json:"subject"`
+		Section   string                 `json:"section"`
+		Options   map[string]interface{} `json:"options"`
+		Answer    map[string]interface{} `json:"answer"`
+		CreatedAt time.Time              `json:"created_at"`
+		UpdatedAt time.Time              `json:"updated_at"`
+	}
+
+	// Get the testID from URL parameters
 	testID := c.Params("testId")
 
-	// Prepare the query to get the test series by ID
+	// Query to retrieve the test series by ID
 	query := `
 		SELECT id, name, description, duration, created_at, updated_at, questions
 		FROM test_series
 		WHERE id = $1;
 	`
 
-	// Create a variable to hold the test series result
 	var ts TestSeries
 
-	// Execute the query
+	// Execute query to get TestSeries data
 	err := database.DB.QueryRow(context.Background(), query, testID).Scan(
-		&ts.ID, &ts.Name, &ts.Description, &ts.Duration, &ts.CreatedAt, &ts.UpdatedAt, pq.Array(&ts.Questions),
+		&ts.ID, &ts.Name, &ts.Description, &ts.Duration, &ts.CreatedAt, &ts.UpdatedAt, &ts.Questions,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -886,6 +887,165 @@ func GetTestData(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve test series"})
 	}
 
-	// Return the test series as a response
+	// Fetch all the questions based on the IDs from ts.Questions
+	if len(ts.Questions) > 0 {
+		// Prepare query for questions using the array of question IDs
+		questionsQuery := `
+			SELECT id, text, image, subject, section, options, answer, created_at, updated_at
+			FROM questions
+			WHERE id = ANY($1);
+		`
+
+		// Create a slice to hold the questions data
+		var questions []Question
+
+		// Execute query to get all the questions
+		rows, err := database.DB.Query(context.Background(), questionsQuery, ts.Questions)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve questions"})
+		}
+		defer rows.Close()
+
+		// Iterate over the rows and scan each question into the slice
+		for rows.Next() {
+			var q Question
+			var image *string // Handle nullable image field
+			err := rows.Scan(&q.ID, &q.Text, &image, &q.Subject, &q.Section, &q.Options, &q.Answer, &q.CreatedAt, &q.UpdatedAt)
+			if err != nil {
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to scan question data"})
+			}
+			q.Image = image
+			questions = append(questions, q)
+		}
+
+		// Combine the test series data with the questions
+		response := fiber.Map{
+			"id":          ts.ID,
+			"name":        ts.Name,
+			"description": ts.Description,
+			"duration":    ts.Duration,
+			"created_at":  ts.CreatedAt,
+			"updated_at":  ts.UpdatedAt,
+			"questions":   questions, // Include full question details
+		}
+
+		// Return the combined data as JSON
+		return c.Status(http.StatusOK).JSON(response)
+	}
+
+	// If there are no questions, just return the test series data
 	return c.Status(http.StatusOK).JSON(ts)
+}
+
+func SubmitTest(c *fiber.Ctx) error {
+	tokenStr := c.Get("Authorization")[7:]
+	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte(jwtSecret), nil
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	userIDInterface, exists := claims["id"]
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
+	}
+
+	userIDFloat, ok := userIDInterface.(float64)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID type"})
+	}
+	userID := uint(userIDFloat)
+
+	// Parse the request body to get the test data
+	var input struct {
+		TestID    int         `json:"testId"`
+		Questions map[int]int `json:"questions"` // {questionId: selectedOptionId}
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	// Fetch questions from the database
+	questionIDs := make([]int, 0, len(input.Questions))
+	for questionID := range input.Questions {
+		questionIDs = append(questionIDs, questionID)
+	}
+
+	query := `SELECT id, text, image, subject, section, options, answer FROM questions WHERE id = ANY($1)`
+	rows, err := database.DB.Query(context.Background(), query, questionIDs)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch questions"})
+	}
+	defer rows.Close()
+
+	// Prepare result data
+	resultData := make(map[int]interface{}) // This will hold the JSONB data for the result
+	correctAnswers := 0
+	incorrectAnswers := 0
+
+	// Process each question
+	for rows.Next() {
+		var questionID int
+		var text, image, subject, section string
+		var options, answer map[string]interface{}
+
+		if err := rows.Scan(&questionID, &text, &image, &subject, &section, &options, &answer); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to process question"})
+		}
+
+		selectedOptionID := input.Questions[questionID]
+		selectedOptionIDStr := strconv.Itoa(selectedOptionID)
+		_, exists := answer[selectedOptionIDStr]
+
+		// Set isCorrect based on whether the selected option exists in the answer map
+		isCorrect := exists // Assuming the answer stores the correct option's ID
+
+		// Count correct/incorrect answers
+		if isCorrect {
+			correctAnswers++
+		} else {
+			incorrectAnswers++
+		}
+
+		// Store question details in the result data
+		resultData[questionID] = map[string]interface{}{
+			"text":    text,
+			"image":   image,
+			"subject": subject,
+			"section": section,
+			"options": options,
+			"select":  selectedOptionID,
+			"answer":  answer,
+		}
+	}
+
+	// Insert the test result into the test_results table
+	insertQuery := `
+		INSERT INTO test_results (user_id, test_id, correct, incorrect, data, test_date) 
+		VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) 
+		RETURNING id
+	`
+	var testResultID int
+	err = database.DB.QueryRow(context.Background(), insertQuery, userID, input.TestID, correctAnswers, incorrectAnswers, resultData).Scan(&testResultID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to insert test result"})
+	}
+
+	// Return the inserted test result ID as a response
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message":      "Test submitted successfully",
+		"testResultID": testResultID,
+	})
 }
