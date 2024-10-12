@@ -1,4 +1,3 @@
-// components/TestCard.tsx
 import React from 'react';
 
 interface TestCardProps {
@@ -19,7 +18,7 @@ const TestCard: React.FC<TestCardProps> = ({
     viewPacksText,
 }) => {
     return (
-        <div className="relative max-w-sm rounded-lg overflow-hidden shadow-lg border border-gray-200">
+        <div className="relative max-w-sm rounded-lg overflow-hidden shadow-lg border border-gray-200 hover:shadow-xl hover:scale-105 transform transition duration-300">
             {/* Background Image */}
             <div
                 className="absolute inset-0 bg-cover bg-center opacity-60"
@@ -52,7 +51,9 @@ const TestCard: React.FC<TestCardProps> = ({
 
                 {/* View Packs and Button */}
                 <div className="flex justify-between items-center">
-                    <button className="text-blue-500 underline">{viewPacksText}</button>
+                    <button className="text-blue-500 underline hover:text-blue-700 transition">
+                        {viewPacksText}
+                    </button>
                     <button className="bg-pink-500 text-white px-4 py-2 rounded-md hover:bg-pink-600 transition">
                         {buttonText}
                     </button>
