@@ -66,12 +66,10 @@ const ParentComponent: React.FC = () => {
 
                 // Open the new tab with the URL /givetest/selectedTestId
                 window.open(`/givetest/${selectedTestId}`, '_blank');
-
-                // Close the modal (assuming this is part of your UI logic)
                 setIsModalOpen(false);
             } catch (error) {
                 console.error("Failed to start the test:", error);
-                alert("Failed to start the test. Please try again.");
+                // alert("Failed to start the test. Please try again.");
             }
         }
     };

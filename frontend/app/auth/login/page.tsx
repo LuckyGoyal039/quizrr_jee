@@ -1,5 +1,6 @@
 "use client";
 
+import SmallLoader from "@/components/loader/SmallLoader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +14,7 @@ function page() {
   const { toast } = useToast();
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -24,7 +26,8 @@ function page() {
 
   const handleSubmit = async () => {
     try {
-      console.log('login', mail, password);
+      console.log("login", mail, password);
+      setLoading(true);
       if (!mail || !regex.test(mail) || !password || password.length < 8) {
         toast({
           variant: "destructive",
@@ -35,8 +38,8 @@ function page() {
         });
         return;
       }
-      
-      const SERVER_BASE_URL=process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+
+      const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
       const userRes = await axios.post(`${SERVER_BASE_URL}/user/login`, {
         email: mail,
         password: password,
@@ -63,7 +66,11 @@ function page() {
       } else {
         router.push("/dashboard");
       }
-    } catch (error) { }
+    } catch (error) {
+      console.log("error", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -93,10 +100,17 @@ function page() {
             />
           </div>
           <div className="flex justify-end">
-            <Button onClick={handleSubmit}>Submit</Button>
+            <Button onClick={handleSubmit}>
+              {loading ? <SmallLoader size={20} /> : "Submit"}
+            </Button>
           </div>
 
-          <p className="text-center text-sm">New User <Link href="/auth/register" className="text-blue-500">Sign Up</Link></p>
+          <p className="text-center text-sm">
+            New User{" "}
+            <Link href="/auth/register" className="text-blue-500">
+              Sign Up
+            </Link>
+          </p>
         </div>
       </div>
     </div>

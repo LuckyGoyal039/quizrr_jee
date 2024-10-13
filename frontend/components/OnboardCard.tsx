@@ -32,9 +32,7 @@ import {
 import { CountrySelect, PhoneInput } from "./PhoneInput";
 import { ScrollArea } from "./ui/scroll-area";
 import { SelectArea } from "./SelectArea";
-import { getHeapSpaceStatistics } from "v8";
 import Loader from "./loader";
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imx1Y2t5QGdtYWlsLmNvbSIsImV4cCI6MTcyODU2MzgwMywiaWQiOjEsInVzZXJuYW1lIjoiTHVja3kgR295YWwifQ.2Gwz97zdrfTTi_4kpze8LTUxR3Y3zcj2SHRJLKaTwuM
 
 const boards = [
   "Indian School Certificate (ISC)",
@@ -109,8 +107,6 @@ function OnboardCard() {
 
   const [val, setVal] = useState("");
 
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJ4aWxvbmE0MTAwQHJvd3BsYW50LmNvbSIsImFwaV90b2tlbiI6IlVTc1BfOGoySWRfTmRfVUpMZXl4U3hJcjdib3RNMENZWTh4anc0b2NDVkpzUGdMSlo4UEtRZnhhMFdZaV9meUhxYWcifSwiZXhwIjoxNzI4NDY5MTcwfQ.UchwJoO5jo0OID7-1691_q1U88Pyb87NmtaWL8p-XsQ";
   const email = "test@example.com";
   // /user/my-notes
   const [country, setCountry] = useState([]);
@@ -137,7 +133,7 @@ function OnboardCard() {
         "https://www.universal-tutorial.com/api/countries/",
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Set the Bearer token in the Authorization header
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_COUNTRY_TOKEN}`, // Set the Bearer token in the Authorization header
             Accept: "application/json", // Optional, depending on the API
           },
         }
@@ -159,7 +155,7 @@ function OnboardCard() {
         `https://www.universal-tutorial.com/api/states/${state}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Set the Bearer token in the Authorization header
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_COUNTRY_TOKEN}`, // Set the Bearer token in the Authorization header
             Accept: "application/json", // Optional, depending on the API
           },
         }
@@ -181,7 +177,7 @@ function OnboardCard() {
         `https://www.universal-tutorial.com/api/cities/${city}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Set the Bearer token in the Authorization header
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_COUNTRY_TOKEN}`, // Set the Bearer token in the Authorization header
             Accept: "application/json", // Optional, depending on the API
           },
         }
@@ -384,7 +380,7 @@ function OnboardCard() {
       subtitle: "",
       comp: (setVal) => (
         <Select onValueChange={setVal}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select Board" />
           </SelectTrigger>
           <SelectContent>
@@ -463,7 +459,7 @@ function OnboardCard() {
     <div className="flex flex-col items-center border relative p-6 w-[50%]">
       <div className="-mt-16">
         <div className="bg-[#bf360c] w-fit py-4 px-7 rounded-[100%]">
-          <h1 className="text-white text-5xl">{email[0].toUpperCase()}</h1>
+          <h1 className="text-white text-5xl">{user?.email?.[0].toUpperCase()}</h1>
         </div>
       </div>
       <div className="flex flex-col items-center mt-4">

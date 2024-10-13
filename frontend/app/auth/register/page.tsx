@@ -1,5 +1,6 @@
 "use client";
 
+import SmallLoader from "@/components/loader/SmallLoader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +17,7 @@ function page() {
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false)
 
   const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -27,6 +29,7 @@ function page() {
 
   const handleSubmit = async () => {
     try {
+      setLoading(true);
       if (
         !name ||
         !mail ||
@@ -65,6 +68,8 @@ function page() {
       router.push('/auth/login');
     } catch (error) {
       console.log("first error", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -114,7 +119,7 @@ function page() {
               />
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleSubmit}>Submit</Button>
+              <Button onClick={handleSubmit}>{loading ? <SmallLoader />  : "Submit"}</Button>
             </div>
 
             <p className="text-center text-sm">Already have account? <Link href="/auth/login" className="text-blue-500">Login</Link></p>

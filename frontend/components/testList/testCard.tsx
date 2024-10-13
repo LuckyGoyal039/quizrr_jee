@@ -57,10 +57,10 @@ const TestCard: React.FC<TestCardProps> = ({
                 </ul>
 
                 {/* View Packs and Button */}
-                <div className="flex justify-between items-center">
-                    <button className="text-blue-500 underline hover:text-blue-700 transition">
+                <div className="flex justify-end items-center">
+                    {/* <button className="text-blue-500 underline hover:text-blue-700 transition">
                         {viewPacksText}
-                    </button>
+                    </button> */}
                     <button
                         className="bg-pink-500 text-white px-4 py-2 rounded-md hover:bg-pink-600 transition"
                         onClick={() => onButtonClick(testId)}  // Pass testId when clicked

@@ -1,12 +1,14 @@
-'use client'
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Camera, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Loader from '../loader';
+import Webcam from "react-webcam";
 
 interface Question {
+    id: number;
     text: string;
     options: { [key: string]: string };
 }
@@ -20,14 +22,17 @@ interface TestData {
 const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
     const [testData, setTestData] = useState<TestData | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState<{ [key: number]: string }>({});
+    const [answers, setAnswers] = useState<{ [questionId: number]: string }>({});
     const [timeRemaining, setTimeRemaining] = useState(0);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [webcamActive, setWebcamActive] = useState(false);
+    const [testStarted, setTestStarted] = useState(false);
+    const [videoError, setVideoError] = useState<string | null>(null);
+    const [testSubmitted, setTestSubmitted] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
+    const videoRefnew = useRef(null);
 
     useEffect(() => {
-        // Fetch the test data based on the testId
         const fetchTestData = async () => {
             try {
                 const token = localStorage.getItem('token');
@@ -43,7 +48,7 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
                 );
                 console.log(resp.data);
                 setTestData(resp.data);
-                setTimeRemaining(resp.data.duration * 60); // Set the timer based on duration
+                setTimeRemaining(resp.data.duration * 60);
             } catch (error) {
                 console.error("Failed to start the test:", error);
                 alert("Failed to start the test. Please try again.");
@@ -51,10 +56,10 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
         };
 
         fetchTestData();
-    }, [testId]); // Dependency on testId
+    }, [testId]);
 
     useEffect(() => {
-        if (timeRemaining <= 0) return; // Skip if time has already expired
+        if (!testStarted || timeRemaining <= 0) return;
 
         const timer = setInterval(() => {
             setTimeRemaining((prevTime) => {
@@ -68,7 +73,7 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [timeRemaining]);
+    }, [testStarted, timeRemaining]);
 
     useEffect(() => {
         const handleFullScreenChange = () => {
@@ -106,18 +111,23 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
+                videoRef.current.onloadedmetadata = () => {
+                    videoRef.current?.play();
+                };
             }
             setWebcamActive(true);
+            setVideoError(null);
         } catch (err) {
             console.error("Error accessing the webcam", err);
-            alert("Webcam access is required to take the test.");
+            setVideoError("Failed to access webcam. Please ensure you've granted permission and your camera is working.");
+            setWebcamActive(false);
         }
     };
 
-    const handleOptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOptionChange = (e: React.ChangeEvent<HTMLInputElement>, questionId: number) => {
         setAnswers({
             ...answers,
-            [currentQuestionIndex]: e.target.value,
+            [questionId]: e.target.value,
         });
     };
 
@@ -133,23 +143,67 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
         }
     };
 
-    const handleSubmit = () => {
-        console.log('Test submitted with answers:', answers);
-        alert('Test submitted successfully!');
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
+    const handleSubmit = async () => {
+        const finalAnswers = { ...answers };
+        testData?.questions.forEach((question) => {
+            if (!finalAnswers[question.id]) {
+                finalAnswers[question.id] = '-1';
+            }
+        });
+
+        const token = localStorage.getItem('token');
+        const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+
+        try {
+            const resp = await axios.post(
+                `${SERVER_BASE_URL}/user/submit-test`,
+                {
+                    testId: Number(testId),
+                    questions: finalAnswers,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            setTestSubmitted(true);
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+
+        } catch (error) {
+            console.error('Error submitting the test:', error);
+            alert('Failed to submit the test. Please try again.');
         }
     };
 
-    if (!testData) {
+    const startTest = () => {
+        enterFullScreen();
+        setTestStarted(true);
+    };
+
+    if (testSubmitted) {
         return (
             <div className="flex flex-col items-center justify-center h-screen w-full">
-                <Loader />
+                <h1 className="text-3xl font-bold mb-4">Thank You!</h1>
+                <p className="text-xl mb-8">Your test has been successfully submitted.</p>
+                <p className="text-lg">You can now close this tab.</p>
             </div>
         );
     }
 
-    if (!isFullScreen || !webcamActive) {
+    if (!testData) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen w-full">
+                <Loader/>
+            </div>
+        );
+    }
+
+    if (!isFullScreen || !webcamActive || !testStarted) {
         return (
             <div className='flex flex-col items-center justify-center h-screen w-full'>
                 <div className="flex justify-center flex-col items-center">
@@ -161,21 +215,34 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
                         </AlertDescription>
                     </Alert>
                     {!webcamActive && (
-                        <button
-                            onClick={startWebcam}
-                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        >
-                            Enable Webcam
-                        </button>
+                        <>
+                            <button
+                                onClick={startWebcam}
+                                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                                Enable Webcam
+                            </button>
+                            {videoError && (
+                                <Alert variant="destructive" className="mt-4">
+                                    <AlertTitle>Webcam Error</AlertTitle>
+                                    <AlertDescription>{videoError}</AlertDescription>
+                                </Alert>
+                            )}
+                        </>
                     )}
                 </div>
-                {webcamActive && !isFullScreen && (
+                {webcamActive && !testStarted && (
                     <button
-                        onClick={enterFullScreen}
+                        onClick={startTest}
                         className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
                         Start Test
                     </button>
+                )}
+                {webcamActive && (
+                    <div className="mt-4 w-64">
+                        <Webcam ref={videoRefnew} className="w-full rounded-lg border-2 border-blue-500" />
+                    </div>
                 )}
             </div>
         );
@@ -199,10 +266,10 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
                         <label key={key} className="block">
                             <input
                                 type="radio"
-                                name={`question-${currentQuestionIndex}`}
+                                name={`question-${currentQuestion.id}`}
                                 value={key}
-                                checked={answers[currentQuestionIndex] === key}
-                                onChange={handleOptionChange}
+                                checked={answers[currentQuestion.id] === key}
+                                onChange={(e) => handleOptionChange(e, currentQuestion.id)}
                                 className="mr-2"
                             />
                             {value}
@@ -215,29 +282,25 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
                 <button
                     onClick={handlePrevious}
                     disabled={currentQuestionIndex === 0}
-                    className="bg-gray-500 text-white px-4 py-2 rounded-md"
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
                 >
                     Previous
                 </button>
                 {currentQuestionIndex === testData.questions.length - 1 ? (
                     <button
                         onClick={handleSubmit}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md"
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
                         Submit
                     </button>
                 ) : (
                     <button
                         onClick={handleNext}
-                        className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
                         Next
                     </button>
                 )}
-            </div>
-
-            <div className="fixed bottom-4 right-4 w-64">
-                <video ref={videoRef} autoPlay muted className="w-full rounded-lg border-2 border-blue-500" />
             </div>
         </div>
     );

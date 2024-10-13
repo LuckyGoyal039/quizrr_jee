@@ -947,7 +947,7 @@ func SubmitTest(c *fiber.Ctx) error {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return []byte(jwtSecret), nil
+		return jwtSecret, nil
 	})
 
 	if err != nil || !token.Valid {
@@ -972,8 +972,8 @@ func SubmitTest(c *fiber.Ctx) error {
 
 	// Parse the request body to get the test data
 	var input struct {
-		TestID    int         `json:"testId"`
-		Questions map[int]int `json:"questions"` // {questionId: selectedOptionId}
+		TestID    int            `json:"testId"`
+		Questions map[int]string `json:"questions"` // {questionId: selectedOptionId (as string)}
 	}
 
 	if err := c.BodyParser(&input); err != nil {
@@ -1008,12 +1008,10 @@ func SubmitTest(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to process question"})
 		}
 
-		selectedOptionID := input.Questions[questionID]
-		selectedOptionIDStr := strconv.Itoa(selectedOptionID)
-		_, exists := answer[selectedOptionIDStr]
+		selectedOptionIDStr := input.Questions[questionID] // Get the selected option as a string
 
-		// Set isCorrect based on whether the selected option exists in the answer map
-		isCorrect := exists // Assuming the answer stores the correct option's ID
+		// Check if the selected option is correct by comparing with the answer map
+		_, isCorrect := answer[selectedOptionIDStr]
 
 		// Count correct/incorrect answers
 		if isCorrect {
@@ -1029,7 +1027,7 @@ func SubmitTest(c *fiber.Ctx) error {
 			"subject": subject,
 			"section": section,
 			"options": options,
-			"select":  selectedOptionID,
+			"select":  selectedOptionIDStr,
 			"answer":  answer,
 		}
 	}
