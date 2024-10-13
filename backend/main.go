@@ -11,6 +11,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/joho/godotenv"
 	database "github.com/quizrr/db"
 	"github.com/quizrr/middleware"
 	"github.com/quizrr/routes"
@@ -32,6 +33,10 @@ func main() {
 	app.Use(middleware.AuthMiddleware)
 
 	routes.UserRoutes(app)
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {

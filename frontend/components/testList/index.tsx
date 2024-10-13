@@ -5,6 +5,16 @@ import TestCard from './TestCard';
 import StartTestModal from './StartTestModal';
 import axios from 'axios';
 
+interface TestCardData {
+    testId: string;
+    batch: string;
+    target: string;
+    title: string;
+    tests: string[];
+    buttonText: string;
+    viewPacksText: string;
+}
+
 const ParentComponent: React.FC = () => {
     const [testList, setTestList] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
