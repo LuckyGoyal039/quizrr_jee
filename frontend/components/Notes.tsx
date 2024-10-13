@@ -25,7 +25,11 @@ interface Note {
 
 const Notes: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
-  const [currNote, setCurrNote] = useState<Note>();
+  const [currNote, setCurrNote] = useState<{
+    id?: string;
+    topic?: string;
+    content?: string;
+  }>();
   const [search, setSearch] = useState("");
   const [searchedNotes, setSearchedNotes] = useState<Note[]>([]);
   const [open, setOpen] = useState(false);
@@ -46,7 +50,7 @@ const Notes: React.FC = () => {
     }
   };
 
-  const deleteNote = async (id: string) => {
+  const deleteNote = async (id?: string) => {
     try {
       const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
       await axios.delete(`${SERVER_BASE_URL}/user/my-notes/${currNote?.id}`, {
@@ -64,7 +68,7 @@ const Notes: React.FC = () => {
     }
   };
 
-  const createNote = async ({ topic, content }: { topic: any; content: any }) => {
+  const createNote = async ({ topic, content }: { topic?: string; content?: string }) => {
     try {
       const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
       const response = await axios.post(
@@ -91,7 +95,7 @@ const Notes: React.FC = () => {
     if (!currNote) return;
 
     try {
-      if (currNote.topic.trim() === "") {
+      if (currNote?.topic?.trim() === "") {
         return;
       }
       const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
@@ -123,12 +127,12 @@ const Notes: React.FC = () => {
   const handleCreate = async () => {
     try {
       if (!currNote) return
-      if (currNote?.topic.trim() === "") {
+      if (currNote?.topic?.trim() === "") {
         return;
       }
       await createNote({
-        topic: currNote.topic.trim(),
-        content: currNote.content.trim(),
+        topic: currNote?.topic?.trim(),
+        content: currNote?.content?.trim(),
       });
     } catch (error) {
       console.log(error)
@@ -267,7 +271,7 @@ const Notes: React.FC = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       console.log("why id", note.id, currNote);
-                      deleteNote(note.id);
+                      deleteNote(note?.id);
                     }}
                     variant="destructive"
                     className=""

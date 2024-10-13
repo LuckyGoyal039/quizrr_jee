@@ -74,25 +74,25 @@ const SelectStandard = ({ setVal }: { setVal: React.Dispatch<React.SetStateActio
         value={"Class 11"}
         readOnly
         className="hover:border-black "
-        onClick={(e) => setVal(e.target.value)}
+        onClick={(e) => setVal((e.target as HTMLInputElement).value)}
       />
       <Input
         value={"Class 12"}
         readOnly
         className="hover:border-black"
-        onClick={(e) => setVal(e.target.value)}
+        onClick={(e) => setVal((e.target as HTMLInputElement).value)}
       />
       <Input
         value={"First Time Dropper"}
         readOnly
         className="hover:border-black"
-        onClick={(e) => setVal(e.target.value)}
+        onClick={(e) => setVal((e.target as HTMLInputElement).value)}
       />
       <Input
         value={"Second Time Dropper"}
         readOnly
         className="hover:border-black"
-        onClick={(e) => setVal(e.target.value)}
+        onClick={(e) => setVal((e.target as HTMLInputElement).value)}
       />
     </div>
   );
@@ -112,7 +112,9 @@ function OnboardCard() {
   const [country, setCountry] = useState([]);
   const [state, setState] = useState([]);
   const [city, setCity] = useState([]);
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState<{
+    email: string;
+  }>();
   // const [userToken, setUserToken] = useState("");
 
   const userKeys = [
@@ -148,7 +150,7 @@ function OnboardCard() {
       setLoading(false); // Set loading to false once data is fetched or an error occurs
     }
   };
-  const fetchState = async (state) => {
+  const fetchState = async (state: number) => {
     try {
       setLoading(true);
       const stateRes = await axios.get(
@@ -170,7 +172,7 @@ function OnboardCard() {
       setLoading(false); // Set loading to false once data is fetched or an error occurs
     }
   };
-  const fetchCity = async (city) => {
+  const fetchCity = async (city: string) => {
     try {
       setLoading(true);
       const cityRes = await axios.get(
@@ -325,7 +327,7 @@ function OnboardCard() {
     {
       title: "Please select your country",
       subtitle: "",
-      comp: (data) => (
+      comp: (data: string[]) => (
         <SelectArea
           name="Country"
           areas={data}
@@ -337,7 +339,7 @@ function OnboardCard() {
     {
       title: "Please select your state",
       subtitle: "",
-      comp: (data) =>
+      comp: (data: string[]) =>
         country && (
           <SelectArea
             name="State"
@@ -350,7 +352,7 @@ function OnboardCard() {
     {
       title: "Please select your city",
       subtitle: "",
-      comp: (data) => (
+      comp: (data: string[]) => (
         <SelectArea
           name="City"
           areas={data}
@@ -378,8 +380,8 @@ function OnboardCard() {
     {
       title: "Please select your Class 12th Board",
       subtitle: "",
-      comp: (setVal) => (
-        <Select onValueChange={setVal}>
+      comp: (setVal: (value: string) => void) => (
+        <Select onValueChange={(value: string) => setVal(value)}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select Board" />
           </SelectTrigger>
