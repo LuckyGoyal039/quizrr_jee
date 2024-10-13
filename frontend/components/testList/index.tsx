@@ -5,6 +5,16 @@ import TestCard from './TestCard';
 import StartTestModal from './StartTestModal';
 import axios from 'axios';
 
+interface TestCardData {
+    testId: string;
+    batch: string;
+    target: string;
+    title: string;
+    tests: string[]; // Array of strings
+    buttonText: string;
+    viewPacksText: string;
+}
+
 const ParentComponent: React.FC = () => {
     const [testList, setTestList] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -71,7 +81,7 @@ const ParentComponent: React.FC = () => {
         <>
             <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {
-                    testList.map((ele, index) => (
+                    testList.map((ele: TestCardData, index) => (
                         <li key={index}>
                             <TestCard
                                 testId={ele.testId}
