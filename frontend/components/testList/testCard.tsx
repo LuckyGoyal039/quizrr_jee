@@ -20,7 +20,7 @@ const TestCard: React.FC<TestCardProps> = ({
     title,
     tests,
     buttonText,
-    viewPacksText,
+    // viewPacksText,
     onButtonClick,
 }) => {
     return (

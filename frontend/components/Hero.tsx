@@ -1,22 +1,21 @@
 "use client";
 
-import { Span } from "next/dist/trace";
+// import { Span } from "next/dist/trace";
 import { Button } from "./ui/button";
 import { Typewriter } from "react-simple-typewriter";
+import Link from "next/link";
 
 function Hero() {
- 
   return (
-    <div className="flex justify-center w-[200vw] overflow-hidden">
+    <div className="flex justify-center w-full overflow-hidden">
       {/* <div className="flex justify-start w-[200vw] rounded-b-[50%]"> */}
       <div className="flex justify-start w-full bg-[#f9fbfd]">
         {/* <div className=" w-[100vw] bg-no-repeat bg-[url('https://www.mathongo.com/public/brand/quizrr/assets/home-hero.jpg')] py-48"> */}
-        <div className="flex justify-center rounded-b-[50%] bg-no-repeat bg-cover bg-[url('https://www.mathongo.com/public/brand/quizrr/assets/home-hero.jpg')] py-48 w-full">
+        <div className="flex justify-center bg-no-repeat bg-cover bg-[url('https://www.mathongo.com/public/brand/quizrr/assets/home-hero.jpg')] py-48 w-full">
           <div className="w-[1024px]">
             <div className="mb-6 max-w-2xl">
               <h1 className="text-5xl font-bold mb-4 text-white">
-                Prepare with India's Most Trusted Test Series for
-                {/* typewritter */}
+                Prepare with India&apos;s Most Trusted Test Series for
                 <span className="block text-yellow-300">
                   <Typewriter
                     words={[
@@ -38,8 +37,9 @@ function Hero() {
               </p>
             </div>
             <div className="">
-              {/* change */}
-              <Button className="bg-blue-500">Explore Test Series</Button>
+              <Link href={"/auth/login"}>
+                <Button className="bg-blue-500">Explore Test Series</Button>
+              </Link>
             </div>
           </div>
         </div>

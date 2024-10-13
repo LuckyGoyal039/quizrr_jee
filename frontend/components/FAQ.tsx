@@ -11,7 +11,7 @@ function FAQ() {
       <div className="text-center max-w-2xl">
         <h1 className="text-[44px] font-bold mb-4">Frequently Asked Questions</h1>
         <p className="text-xl text-[#869ab8] font-normal mb-10">
-          Here are some frequently asked questions by students. If you can't
+          Here are some frequently asked questions by students. If you can&apos;t
           find an answer for your query here, feel free to contact us.
         </p>
       </div>
@@ -33,8 +33,8 @@ function FAQ() {
             <AccordionContent>
               The dates listed in the test schedule show when the tests will be
               uploaded. This means you can start attempting them from those
-              dates. You don't have to take the tests on those exact days. Once
-              they're uploaded and ready, you can take the tests whenever you
+              dates. You don&apos;t have to take the tests on those exact days. Once
+              they&apos;re uploaded and ready, you can take the tests whenever you
               want until the test series expires. Note: 1. The previously
               uploaded tests can also be attempted. 2. You will get analysis and
               ranking irrespective of the date on which you attempt the test.{" "}

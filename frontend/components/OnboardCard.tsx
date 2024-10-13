@@ -1,8 +1,8 @@
 "use client";
 
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "./ui/button";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -10,27 +10,27 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
+  // SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Input, InputProps } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+// import {
+//   Command,
+//   CommandEmpty,
+//   CommandGroup,
+//   CommandInput,
+//   CommandItem,
+//   CommandList,
+// } from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
+// import {
+//   Popover,
+//   PopoverContent,
+//   PopoverTrigger,
+// } from "@/components/ui/popover";
 // import { Input } from "./ui/input";
-import { CountrySelect, PhoneInput } from "./PhoneInput";
-import { ScrollArea } from "./ui/scroll-area";
+import { PhoneInput } from "./PhoneInput";
+// import { ScrollArea } from "./ui/scroll-area";
 import { SelectArea } from "./SelectArea";
 import Loader from "./loader";
 
@@ -65,8 +65,8 @@ const boards = [
   "Others",
 ];
 
-const SelectStandard = ({ setVal }: { setVal: Function }) => {
-  const [select, setSelect] = useState();
+const SelectStandard = ({ setVal }: { setVal: React.Dispatch<React.SetStateAction<string>> }) => {
+  // const [select, setSelect] = useState();
 
   return (
     <div className="flex justify-center gap-4">
@@ -107,7 +107,7 @@ function OnboardCard() {
 
   const [val, setVal] = useState("");
 
-  const email = "test@example.com";
+  // const email = "test@example.com";
   // /user/my-notes
   const [country, setCountry] = useState([]);
   const [state, setState] = useState([]);
@@ -279,7 +279,7 @@ function OnboardCard() {
     // setUserToken(utoken);
     fetchCountry();
 
-    const user = fetchUser();
+    fetchUser();
 
     //   {
     //     "display_name": "",
@@ -304,7 +304,7 @@ function OnboardCard() {
   //   if (user?.state) fetchCity(user.state);
   // }, [user]);
 
-  const [selin, setSelin] = useState([
+  const [selin] = useState([
     {
       title: "Hey, champ! What's your name?",
       subtitle: "Don't worry. You can change it later.",
@@ -385,8 +385,8 @@ function OnboardCard() {
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {boards.map((board) => (
-                <SelectItem value={board}>{board}</SelectItem>
+              {boards.map((board, index) => (
+                <SelectItem value={board} key={index}>{board}</SelectItem>
               ))}
             </SelectGroup>
           </SelectContent>
@@ -455,7 +455,11 @@ function OnboardCard() {
     window.location.href = `/onboarding?step=${step + 1}`;
   };
 
-  return (
+  return loading ? (
+    <div>
+      <Loader />
+    </div>
+  ) : (
     <div className="flex flex-col items-center border relative p-6 w-[50%]">
       <div className="-mt-16">
         <div className="bg-[#bf360c] w-fit py-4 px-7 rounded-[100%]">
@@ -463,31 +467,31 @@ function OnboardCard() {
         </div>
       </div>
       <div className="flex flex-col items-center mt-4">
-        {loading ? (
+        {/* {loading ? (
           <div>
             <Loader />
           </div>
-        ) : (
-          <>
-            {selin?.[step - 1] && <h1 className="text-xl pb-2">{selin[step - 1].title}</h1>}
-            {selin?.[step - 1] && <p>{selin[step - 1].subtitle}</p>}
-            <div className="mt-3 w-full">
-              {selin?.[step - 1] &&
+        ) : ( */}
+        <>
+          {selin?.[step - 1] && <h1 className="text-xl pb-2">{selin[step - 1].title}</h1>}
+          {selin?.[step - 1] && <p>{selin[step - 1].subtitle}</p>}
+          <div className="mt-3 w-full flex justify-center">
+            {selin?.[step - 1] &&
 
-                selin[step - 1].comp(
-                  step === 3
-                    ? country
-                    : step === 4
-                      ? state
-                      : step === 5
-                        ? city
-                        : step === 8
-                          ? setVal
-                          : undefined
-                )}
-            </div>
-          </>
-        )}
+              selin[step - 1].comp(
+                step === 3
+                  ? country
+                  : step === 4
+                    ? state
+                    : step === 5
+                      ? city
+                      : step === 8
+                        ? setVal
+                        : undefined
+              )}
+          </div>
+        </>
+        {/* )} */}
       </div>
       <div className="mt-4">
         <Button onClick={handleClick}>Save & Next</Button>
@@ -497,11 +501,3 @@ function OnboardCard() {
 }
 
 export default OnboardCard;
-
-// xilona4100@rowplant.com
-// 1509|oioLTjRTG8GFPJXjy37027HjJiEPRuPE8PoHSStR
-
-// USsP_8j2Id_Nd_UJLeyxSxIr7botM0CYY8xjw4ocCVJsPgLJZ8PKQfxa0WYi_fyHqag
-// {
-// "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfZW1haWwiOiJ4aWxvbmE0MTAwQHJvd3BsYW50LmNvbSIsImFwaV90b2tlbiI6IlVTc1BfOGoySWRfTmRfVUpMZXl4U3hJcjdib3RNMENZWTh4anc0b2NDVkpzUGdMSlo4UEtRZnhhMFdZaV9meUhxYWcifSwiZXhwIjoxNzI4MzcxNzQ4fQ.kJ-LLVR4sg78Rkr89r3TDudTx8PvpEus2zuKuxvw1Dw"
-// }

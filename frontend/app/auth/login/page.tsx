@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-function page() {
+function Page() {
   const router = useRouter();
   const { toast } = useToast();
   const [mail, setMail] = useState("");
@@ -116,4 +116,4 @@ function page() {
     </div>
   );
 }
-export default page;
+export default Page;
