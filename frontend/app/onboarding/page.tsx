@@ -1,18 +1,15 @@
-// import Notebook from "@/components/Notebook"
-import OnboardCard from "@/components/OnboardCard"
-// import OnboardCard2 from "@/components/OnboardCard2"
-// import OnBoarding from "@/components/onBoarding/index"
+"use client";
 
-function page() {
+import { OnboardCard } from "@/components/OnboardCard";
+import { Suspense } from "react";
+
+function Page() {
   return (
-
     <div className="flex justify-center items-center h-full">
-      {/* <OnBoarding /> */}
-      <OnboardCard />
-      {/* <OnboardCard2 /> */}
-      {/* <Notebook /> */}
+      <Suspense fallback={<>Loading...</>}>
+        <OnboardCard />
+      </Suspense>
     </div>
-
-  )
+  );
 }
-export default page
+export default Page;
