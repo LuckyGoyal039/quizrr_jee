@@ -2,21 +2,15 @@ package middleware
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
-	"github.com/joho/godotenv"
 )
 
 func AuthMiddleware(c *fiber.Ctx) error {
 	// Get the JWT secret key
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	var jwtSecret = os.Getenv("JWT_SECRET")
 	authHeader := c.Get("Authorization")
 

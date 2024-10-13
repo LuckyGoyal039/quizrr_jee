@@ -13,7 +13,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/jackc/pgx"
-	"github.com/joho/godotenv"
 	database "github.com/quizrr/db"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -214,10 +213,7 @@ func Login(c *fiber.Ctx) error {
 }
 
 func generateJWTToken(user UserDetails) (string, error) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		return "", fmt.Errorf("JWT_SECRET environment variable is not set")
@@ -277,10 +273,7 @@ func GetBoardList(c *fiber.Ctx) error {
 }
 
 func GetAllProfileData(c *fiber.Ctx) error {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+
 	tokenStr := c.Get("Authorization")[7:]
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
 
@@ -365,10 +358,7 @@ func GetAllProfileData(c *fiber.Ctx) error {
 }
 
 func SetPortfolioData(c *fiber.Ctx) error {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+
 	tokenStr := c.Get("Authorization")
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
 	if len(tokenStr) < 7 || tokenStr[:7] != "Bearer " {
@@ -537,10 +527,7 @@ func SetPortfolioData(c *fiber.Ctx) error {
 }
 
 func GetNotesList(c *fiber.Ctx) error {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+
 	tokenStr := c.Get("Authorization")
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
 	if len(tokenStr) < 7 || tokenStr[:7] != "Bearer " {
@@ -616,10 +603,6 @@ func GetNotesList(c *fiber.Ctx) error {
 }
 
 func CreateNote(c *fiber.Ctx) error {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	tokenStr := c.Get("Authorization")[7:]
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
@@ -682,10 +665,6 @@ func CreateNote(c *fiber.Ctx) error {
 }
 
 func DeleteNote(c *fiber.Ctx) error {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
 	tokenStr := c.Get("Authorization")[7:]
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
@@ -736,10 +715,6 @@ func DeleteNote(c *fiber.Ctx) error {
 }
 
 func UpdateNote(c *fiber.Ctx) error {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
 	tokenStr := c.Get("Authorization")[7:]
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
@@ -966,10 +941,6 @@ func GetTestData(c *fiber.Ctx) error {
 }
 
 func SubmitTest(c *fiber.Ctx) error {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	tokenStr := c.Get("Authorization")[7:]
 	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
