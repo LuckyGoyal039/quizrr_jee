@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import {Link as LinkTag } from "react-scroll";
+import { Link as LinkTag } from "react-scroll";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 
@@ -30,60 +30,71 @@ function Navbar() {
   // margin-left: -50%;
   // border-bottom-right-radius: 50%;
   return (
-         <div
-          className={`flex justify-center fixed top-0 w-full ${
-            scrollPosition < 5 ? "bg-transparent" : "bg-white"
-          }`}
-        >
-          <div className="flex items-center justify-between py-5 max-w-5xl w-[1024px]">
-            <div className="">
-              {scrollPosition < 5 ? (
-                <Image
-                  width={95}
-                  height={38}
-                  alt="Quizrr Logo"
-                  src={
-                    "https://www.mathongo.com/public/brand/quizrr/logo-light.svg"
-                  }
-                />
-              ) : (
-                <Image
-                  width={95}
-                  height={38}
-                  alt="Quizrr Logo"
-                  src={
-                    "https://www.mathongo.com/public/brand/quizrr/logo-dark.svg"
-                  }
-                />
-              )}
-            </div>
-            <div className="flex gap">
-              <Link href={"/"} className="py-2 px-6 hover:text-blue-500">
-                Home
-              </Link>
-              <Link href={"/"} className="py-2 px-6 hover:text-blue-500">
-                Test Series
-              </Link>
-              <LinkTag to={"institute"}  activeClass="active" 
-      spy={true} 
-      smooth={true} 
-      offset={50} 
-      duration={500}  className="py-2 px-6 hover:text-blue-500">
-                For Institutes
-              </LinkTag>
-              <Link href={"/"} className="py-2 px-6 hover:text-blue-500">
-                Contact Us
-              </Link>
-            </div>
-            <div className="">
-              <Link href={"/auth/login"}>
-                {/* change */}
-                <Button className="bg-blue-500">Login</Button>
-              </Link>
-            </div>
-          </div>
+    <div
+      className={`flex justify-center fixed top-0 w-full ${scrollPosition < 5 ? "bg-transparent" : "bg-white"
+        }`}
+    >
+      <div className="flex items-center justify-between py-5 max-w-5xl w-[1024px]">
+        <div className="">
+          {scrollPosition < 5 ? (
+            <Image
+              width={95}
+              height={38}
+              alt="Quizrr Logo"
+              src={
+                "https://www.mathongo.com/public/brand/quizrr/logo-light.svg"
+              }
+            />
+          ) : (
+            <Image
+              width={95}
+              height={38}
+              alt="Quizrr Logo"
+              src={"https://www.mathongo.com/public/brand/quizrr/logo-dark.svg"}
+            />
+          )}
         </div>
-    
+        <div className="flex gap cursor-pointer">
+          <Link href={"/"} className="py-2 px-6 hover:text-blue-500">
+            Home
+          </Link>
+          <LinkTag
+            to={"testseries"}
+            activeClass="active"
+            spy={true}
+            smooth={true}
+            offset={50}
+            duration={500}
+            className="py-2 px-6 hover:text-blue-500"
+          >
+            Test Series{" "}
+          </LinkTag>
+          <LinkTag
+            to={"institute"}
+            activeClass="active"
+            spy={true}
+            smooth={true}
+            offset={50}
+            duration={500}
+            className="py-2 px-6 hover:text-blue-500"
+          >
+            For Institutes
+          </LinkTag>
+          <Link
+            href={"mailto:luckgoyalconnect@gmail.com"}
+            className="py-2 px-6 hover:text-blue-500"
+            target="_blank" rel="noopener noreferrer"
+          >
+            Contact Us
+          </Link>
+        </div>
+        <div className="">
+          <Link href={"/auth/login"}>
+            <Button className="bg-blue-500">Login</Button>
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
 export default Navbar;

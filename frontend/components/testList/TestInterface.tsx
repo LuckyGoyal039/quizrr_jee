@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Camera, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Loader from '../loader';
 import Webcam from "react-webcam";
@@ -155,7 +155,7 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
         const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
 
         try {
-            const resp = await axios.post(
+            await axios.post(
                 `${SERVER_BASE_URL}/user/submit-test`,
                 {
                     testId: Number(testId),
@@ -168,6 +168,7 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
                     },
                 }
             );
+
 
             setTestSubmitted(true);
             if (document.exitFullscreen) {
@@ -198,7 +199,7 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
     if (!testData) {
         return (
             <div className="flex flex-col items-center justify-center h-screen w-full">
-                <Loader/>
+                <Loader />
             </div>
         );
     }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster"
-import Navbar from "@/components/Navbar";
+// import Navbar from "@/components/Navbar";
 
 const hk = Hanken_Grotesk({
   subsets: ["latin"],

@@ -59,10 +59,10 @@ function Syllabus() {
             Why is the chapterwise test series very important for JEE Advanced?
           </h5>
           <p>
-            Tests are integral part of a student's preparation and we don't give
+            Tests are integral part of a student&apos;s preparation and we don&apos;t give
             enough importance to them. That is where the chapter wise test
             series is very important. Prepare a chapter & test yourself with
-            different pattern of questions.{" "}
+            different pattern of questions.
           </p>
           <div className="flex flex-col gap-y-6 py-6">
             <div className="flex space-x-2">

@@ -1,5 +1,17 @@
-function ExamStatsCard({ label, labelColor, labelBg, borderColor, values, mr }) {
-    // const borderColor = `border-t-${labelColor}`
+interface LabelInterface {
+  label: string;
+  labelColor: string;
+  labelBg: string;
+  borderColor: string;
+  values: Array<{
+    title: string;
+    text: string;
+  }>;
+  mr: boolean;
+}
+
+function ExamStatsCard({ label, labelColor, labelBg, borderColor, values, mr }: LabelInterface) {
+  // const borderColor = `border-t-${labelColor}`
   return (
     <div className="transition-all hover:-translate-y-2">
       <p className={`${labelColor} ${labelBg} font-bold uppercase tracking-wide w-fit px-3 rounded-md `}>

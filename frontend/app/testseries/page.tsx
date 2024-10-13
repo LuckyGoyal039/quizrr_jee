@@ -1,5 +1,5 @@
 import React from 'react';
-import Notes from "@/components/Notes";
+// import Notes from "@/components/Notes";
 import Sidebar from "@/components/sidebar";
 import TestList from '@/components/testList';
 

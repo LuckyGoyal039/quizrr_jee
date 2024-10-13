@@ -4,13 +4,12 @@ import React, { useEffect, useState } from 'react';
 import TestCard from './TestCard';
 import StartTestModal from './StartTestModal';
 import axios from 'axios';
-import TestInterface from './TestInterface';
 
 const ParentComponent: React.FC = () => {
     const [testList, setTestList] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTestId, setSelectedTestId] = useState<string | null>(null);
-    const [testData, setTestData] = useState(null)
+    // const [testData, setTestData] = useState(null)
 
     async function getTestList() {
         const token = localStorage.getItem("token");
@@ -50,21 +49,6 @@ const ParentComponent: React.FC = () => {
     const handleAccept = async () => {
         if (selectedTestId) {
             try {
-                // const token = localStorage.getItem('token');
-                // const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
-
-                // const resp = await axios.get(
-                //     `${SERVER_BASE_URL}/user/test-data/${selectedTestId}`,
-                //     {
-                //         headers: {
-                //             Authorization: `Bearer ${token}`,
-                //         },
-                //     }
-                // );
-
-                // console.log(resp.data);
-
-                // Open the new tab with the URL /givetest/selectedTestId
                 window.open(`/givetest/${selectedTestId}`, '_blank');
                 setIsModalOpen(false);
             } catch (error) {

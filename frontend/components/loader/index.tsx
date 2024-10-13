@@ -4,8 +4,8 @@ interface LoaderProps {
   size?: number;
 }
 
-const Loader: React.FC<LoaderProps> = ({ size = 45 }) => {
-  const loaderSize = `${size}px`;
+const Loader: React.FC<LoaderProps> = () => {
+  // const loaderSize = `${size}px`;
 
   return (
     
