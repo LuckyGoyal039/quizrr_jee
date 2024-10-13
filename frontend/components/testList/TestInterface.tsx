@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
@@ -8,6 +8,7 @@ import Loader from '../loader';
 import Webcam from "react-webcam";
 
 interface Question {
+    id: number;
     text: string;
     options: { [key: string]: string };
 }
@@ -21,12 +22,13 @@ interface TestData {
 const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
     const [testData, setTestData] = useState<TestData | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState<{ [key: number]: string }>({});
+    const [answers, setAnswers] = useState<{ [questionId: number]: string }>({});
     const [timeRemaining, setTimeRemaining] = useState(0);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [webcamActive, setWebcamActive] = useState(false);
     const [testStarted, setTestStarted] = useState(false);
     const [videoError, setVideoError] = useState<string | null>(null);
+    const [testSubmitted, setTestSubmitted] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const videoRefnew = useRef(null);
 
@@ -122,10 +124,10 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
         }
     };
 
-    const handleOptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOptionChange = (e: React.ChangeEvent<HTMLInputElement>, questionId: number) => {
         setAnswers({
             ...answers,
-            [currentQuestionIndex]: e.target.value,
+            [questionId]: e.target.value,
         });
     };
 
@@ -141,11 +143,40 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
         }
     };
 
-    const handleSubmit = () => {
-        console.log('Test submitted with answers:', answers);
-        alert('Test submitted successfully!');
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
+    const handleSubmit = async () => {
+        const finalAnswers = { ...answers };
+        testData?.questions.forEach((question) => {
+            if (!finalAnswers[question.id]) {
+                finalAnswers[question.id] = '-1';
+            }
+        });
+
+        const token = localStorage.getItem('token');
+        const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
+
+        try {
+            const resp = await axios.post(
+                `${SERVER_BASE_URL}/user/submit-test`,
+                {
+                    testId: Number(testId),
+                    questions: finalAnswers,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            setTestSubmitted(true);
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+
+        } catch (error) {
+            console.error('Error submitting the test:', error);
+            alert('Failed to submit the test. Please try again.');
         }
     };
 
@@ -153,6 +184,16 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
         enterFullScreen();
         setTestStarted(true);
     };
+
+    if (testSubmitted) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen w-full">
+                <h1 className="text-3xl font-bold mb-4">Thank You!</h1>
+                <p className="text-xl mb-8">Your test has been successfully submitted.</p>
+                <p className="text-lg">You can now close this tab.</p>
+            </div>
+        );
+    }
 
     if (!testData) {
         return (
@@ -200,13 +241,6 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
                 )}
                 {webcamActive && (
                     <div className="mt-4 w-64">
-                        {/* <video
-                            ref={videoRef}
-                            autoPlay
-                            playsInline
-                            muted
-                            className="w-full rounded-lg border-2 border-blue-500"
-                        /> */}
                         <Webcam ref={videoRefnew} className="w-full rounded-lg border-2 border-blue-500" />
                     </div>
                 )}
@@ -232,10 +266,10 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
                         <label key={key} className="block">
                             <input
                                 type="radio"
-                                name={`question-${currentQuestionIndex}`}
+                                name={`question-${currentQuestion.id}`}
                                 value={key}
-                                checked={answers[currentQuestionIndex] === key}
-                                onChange={handleOptionChange}
+                                checked={answers[currentQuestion.id] === key}
+                                onChange={(e) => handleOptionChange(e, currentQuestion.id)}
                                 className="mr-2"
                             />
                             {value}
@@ -248,36 +282,25 @@ const TestInterface: React.FC<{ testId: string }> = ({ testId }) => {
                 <button
                     onClick={handlePrevious}
                     disabled={currentQuestionIndex === 0}
-                    className="bg-gray-500 text-white px-4 py-2 rounded-md"
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
                 >
                     Previous
                 </button>
                 {currentQuestionIndex === testData.questions.length - 1 ? (
                     <button
                         onClick={handleSubmit}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md"
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
                         Submit
                     </button>
                 ) : (
                     <button
                         onClick={handleNext}
-                        className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
                         Next
                     </button>
                 )}
-            </div>
-
-            <div className="fixed bottom-4 right-4 w-64">
-                {/* <video 
-                    ref={videoRef} 
-                    autoPlay 
-                    playsInline
-                    muted 
-                    className="w-full rounded-lg border-2 border-blue-500" 
-                /> */}
-                <Webcam ref={videoRefnew} className="w-full rounded-lg border-2 border-blue-500" />
             </div>
         </div>
     );
