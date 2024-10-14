@@ -3,6 +3,7 @@ import { CheckIcon, ChevronsUpDown } from "lucide-react";
 import * as React from "react";
 
 import * as RPNInput from "react-phone-number-input";
+import { E164Number } from 'libphonenumber-js';
 
 import flags from "react-phone-number-input/flags";
 
@@ -15,7 +16,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Input, InputProps } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -52,7 +53,13 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
            *
            * @param {E164Number | undefined} value - The entered value
            */
-          onChange={(value) => onChange?.(value || "")}
+          // onChange={(value) => onChange?.(value || "")}
+          // {...props}
+          onChange={(value) => {
+            if (value) {
+              onChange?.(value as E164Number);  // Safely cast to E164Number
+            }
+          }}
           {...props}
         />
       );
@@ -60,7 +67,11 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
   );
 PhoneInput.displayName = "PhoneInput";
 
-const InputComponent = React.forwardRef<HTMLInputElement, InputProps>(
+interface InputComponentProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  className?: string; // Make sure className is defined as an optional prop
+}
+
+const InputComponent = React.forwardRef<HTMLInputElement, InputComponentProps>(
   ({ className, ...props }, ref) => (
     <Input
       className={cn("rounded-e-lg rounded-s-none", className)}

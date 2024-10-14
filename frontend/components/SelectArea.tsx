@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import React from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -19,8 +19,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
+type Kee = 
+  'country_name' |
+  'state_name' |
+  'city_name'
 
-export function SelectArea({ name, areas, keyname, setVal }) {
+export function SelectArea({ name, areas, keyname, setVal }: {name: string, areas: {country_name: string, state_name: string, city_name: string}[], keyname: Kee, setVal: React.Dispatch<React.SetStateAction<string>>}) {
   const [open, setOpen] = React.useState(false)
   const [value, setValue] = React.useState("")
   console.log('cct', keyname, areas)
@@ -49,7 +53,7 @@ export function SelectArea({ name, areas, keyname, setVal }) {
               {areas?.map((area, index) => (
                 <CommandItem
                   key={index}
-                  keyname={area?.[keyname]}
+                  // keyname={area?.[keyname]}
                   value={area?.[keyname]}
                   onSelect={(currentValue) => {
                     setValue(currentValue === value ? "" : currentValue)

@@ -19,8 +19,8 @@ import { Label } from "@/components/ui/label";
 
 interface Note {
   id?: string;
-  topic: string;
-  content: string;
+  topic?: string;
+  content?: string;
 }
 
 const Notes: React.FC = () => {
@@ -149,8 +149,8 @@ const Notes: React.FC = () => {
     setSearchedNotes(
       notes?.filter(
         (note) =>
-          note.topic.toLowerCase().includes(search.toLowerCase()) ||
-          note.content.toLowerCase().includes(search.toLowerCase())
+          note?.topic?.toLowerCase()?.includes(search.toLowerCase()) ||
+          note?.content?.toLowerCase()?.includes(search.toLowerCase())
       )
     );
   }, [search, notes]);
@@ -189,7 +189,7 @@ const Notes: React.FC = () => {
                     id="name"
                     value={currNote.topic}
                     onChange={(e) =>
-                      setCurrNote({ ...currNote, topic: e.target.value })
+                      setCurrNote({ ...currNote!, topic: e.target.value })
                     }
                     className="col-span-3"
                   />
@@ -271,7 +271,7 @@ const Notes: React.FC = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       console.log("why id", note.id, currNote);
-                      deleteNote(note?.id);
+                      deleteNote(note?.id ? note.id : "");
                     }}
                     variant="destructive"
                     className=""
