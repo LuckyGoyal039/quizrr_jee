@@ -20,6 +20,8 @@ func UserRoutes(app *fiber.App) {
 	userGroup.Get("/test-list", user.GetTestSeriesList)
 	userGroup.Get("/test-data/:testId", user.GetTestData)
 	userGroup.Post("/submit-test", user.SubmitTest)
+	userGroup.Get("/results-list", user.GetAllResults)
+	userGroup.Get("/test-result-data/:id", user.GetTestResultData)
 
 	// get list of all test
 

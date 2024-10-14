@@ -355,7 +355,7 @@ export const OnboardCard = () => {
     {
       title: "Please select your country",
       subtitle: "",
-      comp: (data) => (
+      comp: (data: string[]) => (
         <SelectArea
           name="Country"
           areas={data}
@@ -367,7 +367,7 @@ export const OnboardCard = () => {
     {
       title: "Please select your state",
       subtitle: "",
-      comp: (data) =>
+      comp: (data: string[]) =>
         country && (
           <SelectArea
             name="State"
@@ -380,7 +380,7 @@ export const OnboardCard = () => {
     {
       title: "Please select your city",
       subtitle: "",
-      comp: (data) => (
+      comp: (data: string[]) => (
         <SelectArea
           name="City"
           areas={data}

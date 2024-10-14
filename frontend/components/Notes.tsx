@@ -25,7 +25,11 @@ interface Note {
 
 const Notes: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
-  const [currNote, setCurrNote] = useState<Note>();
+  const [currNote, setCurrNote] = useState<{
+    id?: string;
+    topic?: string;
+    content?: string;
+  }>();
   const [search, setSearch] = useState("");
   const [searchedNotes, setSearchedNotes] = useState<Note[]>([]);
   const [open, setOpen] = useState(false);
@@ -46,7 +50,7 @@ const Notes: React.FC = () => {
     }
   };
 
-  const deleteNote = async (id: string) => {
+  const deleteNote = async (id?: string) => {
     try {
       const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
       await axios.delete(`${SERVER_BASE_URL}/user/my-notes/${currNote?.id}`, {
