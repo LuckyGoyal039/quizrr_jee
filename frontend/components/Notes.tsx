@@ -19,8 +19,8 @@ import { Label } from "@/components/ui/label";
 
 interface Note {
   id?: string;
-  topic: string;
-  content: string;
+  topic?: string;
+  content?: string;
 }
 
 const Notes: React.FC = () => {
@@ -64,7 +64,7 @@ const Notes: React.FC = () => {
     }
   };
 
-  const createNote = async ({ topic, content }: { topic: any; content: any }) => {
+  const createNote = async ({ topic, content }: { topic?: string; content?: string }) => {
     try {
       const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
       const response = await axios.post(
@@ -91,7 +91,7 @@ const Notes: React.FC = () => {
     if (!currNote) return;
 
     try {
-      if (currNote.topic.trim() === "") {
+      if (currNote?.topic?.trim() === "") {
         return;
       }
       const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
@@ -123,12 +123,12 @@ const Notes: React.FC = () => {
   const handleCreate = async () => {
     try {
       if (!currNote) return
-      if (currNote?.topic.trim() === "") {
+      if (currNote?.topic?.trim() === "") {
         return;
       }
       await createNote({
-        topic: currNote.topic.trim(),
-        content: currNote.content.trim(),
+        topic: currNote?.topic?.trim(),
+        content: currNote?.content?.trim(),
       });
     } catch (error) {
       console.log(error)
@@ -145,8 +145,8 @@ const Notes: React.FC = () => {
     setSearchedNotes(
       notes?.filter(
         (note) =>
-          note.topic.toLowerCase().includes(search.toLowerCase()) ||
-          note.content.toLowerCase().includes(search.toLowerCase())
+          note?.topic?.toLowerCase()?.includes(search.toLowerCase()) ||
+          note?.content?.toLowerCase()?.includes(search.toLowerCase())
       )
     );
   }, [search, notes]);
@@ -185,7 +185,7 @@ const Notes: React.FC = () => {
                     id="name"
                     value={currNote.topic}
                     onChange={(e) =>
-                      setCurrNote({ ...currNote, topic: e.target.value })
+                      setCurrNote({ ...currNote!, topic: e.target.value })
                     }
                     className="col-span-3"
                   />
@@ -267,7 +267,7 @@ const Notes: React.FC = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       console.log("why id", note.id, currNote);
-                      deleteNote(note.id);
+                      deleteNote(note?.id ? note.id : "");
                     }}
                     variant="destructive"
                     className=""
