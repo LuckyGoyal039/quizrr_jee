@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -1049,4 +1050,228 @@ func SubmitTest(c *fiber.Ctx) error {
 		"message":      "Test submitted successfully",
 		"testResultID": testResultID,
 	})
+}
+
+func GetAllResults(c *fiber.Ctx) error {
+	tokenStr := c.Get("Authorization")[7:]
+	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
+
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	userIDInterface, exists := claims["id"]
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
+	}
+
+	userIDFloat, ok := userIDInterface.(float64)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID type"})
+	}
+	userID := uint(userIDFloat)
+
+	query := `
+		SELECT tr.test_id, tr.correct, tr.incorrect, tr.test_date, ts.name
+		FROM test_results tr
+		JOIN test_series ts ON tr.test_id = ts.id
+		WHERE tr.user_id = $1;
+	`
+
+	// Execute the query
+	rows, err := database.DB.Query(context.Background(), query, userID)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve test results"})
+	}
+	defer rows.Close()
+
+	// Slice to store test results
+	var testResults []struct {
+		TestID    uint      `json:"test_id"`
+		Correct   int       `json:"correct"`
+		Incorrect int       `json:"incorrect"`
+		TestDate  time.Time `json:"test_date"`
+		TestName  string    `json:"test_name"`
+	}
+
+	// Iterate through the rows and scan the data
+	for rows.Next() {
+		var result struct {
+			TestID    uint      `json:"test_id"`
+			Correct   int       `json:"correct"`
+			Incorrect int       `json:"incorrect"`
+			TestDate  time.Time `json:"test_date"`
+			TestName  string    `json:"test_name"`
+		}
+
+		if err := rows.Scan(&result.TestID, &result.Correct, &result.Incorrect, &result.TestDate, &result.TestName); err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to scan test results"})
+		}
+
+		testResults = append(testResults, result)
+	}
+
+	// Check for any row iteration error
+	if err = rows.Err(); err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Error while iterating rows"})
+	}
+
+	// Return the results as JSON
+	return c.Status(fiber.StatusOK).JSON(testResults)
+}
+
+func GetTestResultData(c *fiber.Ctx) error {
+	// Get the test result ID from the URL parameters
+	testIDParam := c.Params("id")
+
+	// Convert the testID from string to integer
+	testID, err := strconv.Atoi(testIDParam)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid test ID"})
+	}
+
+	// Extract the JWT token from the Authorization header
+	tokenStr := c.Get("Authorization")[7:]
+	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
+
+	// Parse and validate the JWT token
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Extract claims and user ID from the token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// Extract the user ID from the token
+	userIDInterface, exists := claims["id"]
+	if !exists {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
+	}
+
+	userIDFloat, ok := userIDInterface.(float64)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID type"})
+	}
+	userID := uint(userIDFloat)
+
+	// SQL query to retrieve test results for the specific user and test result ID, including the 'data' field
+	query := `
+        SELECT tr.id, tr.test_id, tr.correct, tr.incorrect, tr.test_date,
+               ts.name, ts.duration, ts.description, ts.questions, ts.batch, ts.target, tr.data
+        FROM test_results tr
+        JOIN test_series ts ON tr.test_id = ts.id
+        WHERE tr.user_id = $1 AND tr.id = $2;
+    `
+
+	// Execute the query with the userID and testID
+	row := database.DB.QueryRow(context.Background(), query, userID, testID)
+
+	// Struct to hold the result data
+	var result struct {
+		ID          uint            `json:"id"`
+		TestID      uint            `json:"test_id"`
+		Correct     int             `json:"correct"`
+		Incorrect   int             `json:"incorrect"`
+		TestDate    time.Time       `json:"test_date"`
+		TestName    string          `json:"test_name"`
+		Duration    int             `json:"duration"`
+		Description string          `json:"description"`
+		Questions   []int           `json:"questions"` // array of question ids
+		Batch       string          `json:"batch"`
+		Target      string          `json:"target"`
+		Data        json.RawMessage `json:"data"` // Store the 'data' field as JSONB
+	}
+
+	var questions []int32 // pgx stores array as int32
+
+	// Scan the query result into the struct, including 'data'
+	err = row.Scan(
+		&result.ID, &result.TestID, &result.Correct, &result.Incorrect, &result.TestDate,
+		&result.TestName, &result.Duration, &result.Description, &questions, &result.Batch, &result.Target, &result.Data,
+	)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Test result not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve test result"})
+	}
+
+	// Convert []int32 to []int
+	result.Questions = make([]int, len(questions))
+	for i, q := range questions {
+		result.Questions[i] = int(q)
+	}
+
+	// Fetch detailed question data
+	questionQuery := `
+        SELECT id, text, image, subject, section, options, answer
+        FROM questions
+        WHERE id = ANY($1);
+    `
+
+	// Execute query to get all the questions using the IDs
+	rows, err := database.DB.Query(context.Background(), questionQuery, result.Questions)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve questions"})
+	}
+	defer rows.Close()
+
+	// Define a struct for the question details
+	type Question struct {
+		ID      uint            `json:"id"`
+		Text    string          `json:"text"`
+		Image   *string         `json:"image"` // Image can be NULL
+		Subject string          `json:"subject"`
+		Section string          `json:"section"`
+		Options json.RawMessage `json:"options"` // Store options as JSONB
+		Answer  json.RawMessage `json:"answer"`  // Store answer as JSONB
+	}
+
+	var questionsData []Question
+
+	// Loop through rows and scan each question
+	for rows.Next() {
+		var question Question
+		err := rows.Scan(&question.ID, &question.Text, &question.Image, &question.Subject, &question.Section, &question.Options, &question.Answer)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to parse questions"})
+		}
+		questionsData = append(questionsData, question)
+	}
+
+	// Check for any errors during row iteration
+	if err = rows.Err(); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching questions data"})
+	}
+
+	// Prepare the final response with test result, data, and questions
+	finalResult := fiber.Map{
+		"test_result": result,
+		"questions":   questionsData,
+	}
+
+	// Return the test result along with questions data as JSON
+	return c.Status(fiber.StatusOK).JSON(finalResult)
 }
