@@ -37,7 +37,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		c.Locals("user", claims)
+		c.Locals("User", claims)
 	} else {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token claims"})
 	}

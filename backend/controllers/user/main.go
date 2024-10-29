@@ -221,9 +221,9 @@ func generateJWTToken(user UserDetails) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":       user.ID,
-		"username": user.Username,
-		"email":    user.Email,
+		"Id":       user.ID,
+		"Username": user.Username,
+		"Email":    user.Email,
 		"exp":      time.Now().Add(time.Hour * 200).Unix(),
 	})
 
@@ -528,31 +528,14 @@ func SetPortfolioData(c *fiber.Ctx) error {
 }
 
 func GetNotesList(c *fiber.Ctx) error {
-
-	tokenStr := c.Get("Authorization")
-	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
-	if len(tokenStr) < 7 || tokenStr[:7] != "Bearer " {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing or invalid token"})
-	}
-	tokenStr = tokenStr[7:]
-
-	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method")
-		}
-		return jwtSecret, nil
-	})
-
-	if err != nil || !token.Valid {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
+	// Retrieve the user claims from the context
+	claims, ok := c.Locals("User").(jwt.MapClaims)
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token claims"})
 	}
 
-	userIDInterface, exists := claims["id"]
+	// Extract user ID from claims
+	userIDInterface, exists := claims["Id"]
 	if !exists {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
 	}
@@ -563,6 +546,7 @@ func GetNotesList(c *fiber.Ctx) error {
 	}
 	userID := uint(userIDFloat)
 
+	// SQL query to retrieve notebooks for the specific user
 	query := `
 		SELECT 
 			id, 
@@ -600,6 +584,7 @@ func GetNotesList(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error iterating over notebooks"})
 	}
 
+	// Return the list of notebooks as JSON
 	return c.JSON(notebooks)
 }
 
@@ -1133,10 +1118,7 @@ func GetAllResults(c *fiber.Ctx) error {
 }
 
 func GetTestResultData(c *fiber.Ctx) error {
-	// Get the test result ID from the URL parameters
 	testIDParam := c.Params("id")
-
-	// Convert the testID from string to integer
 	testID, err := strconv.Atoi(testIDParam)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid test ID"})
@@ -1178,12 +1160,12 @@ func GetTestResultData(c *fiber.Ctx) error {
 
 	// SQL query to retrieve test results for the specific user and test result ID, including the 'data' field
 	query := `
-        SELECT tr.id, tr.test_id, tr.correct, tr.incorrect, tr.test_date,
-               ts.name, ts.duration, ts.description, ts.questions, ts.batch, ts.target, tr.data
-        FROM test_results tr
-        JOIN test_series ts ON tr.test_id = ts.id
-        WHERE tr.user_id = $1 AND tr.id = $2;
-    `
+		SELECT tr.id, tr.test_id, tr.correct, tr.incorrect, tr.test_date,
+				ts.name, ts.duration, ts.description, ts.questions, ts.batch, ts.target, tr.data
+		FROM test_results tr
+		JOIN test_series ts ON tr.test_id = ts.id
+		WHERE tr.user_id = $1 AND tr.id = $2;
+	`
 
 	// Execute the query with the userID and testID
 	row := database.DB.QueryRow(context.Background(), query, userID, testID)
@@ -1226,10 +1208,10 @@ func GetTestResultData(c *fiber.Ctx) error {
 
 	// Fetch detailed question data
 	questionQuery := `
-        SELECT id, text, image, subject, section, options, answer
-        FROM questions
-        WHERE id = ANY($1);
-    `
+		SELECT id, text, image, subject, section, options, answer
+		FROM questions
+		WHERE id = ANY($1);
+	`
 
 	// Execute query to get all the questions using the IDs
 	rows, err := database.DB.Query(context.Background(), questionQuery, result.Questions)
