@@ -113,9 +113,9 @@ export const OnboardCard = () => {
 
   // const email = "test@example.com";
   // /user/my-notes
-  const [country, setCountry] = useState<{country_name: string, state_name: string, city_name: string}[]>([]);
-  const [state, setState] = useState<{country_name: string, state_name: string, city_name: string}[]>([]);
-  const [city, setCity] = useState<{country_name: string, state_name: string, city_name: string}[]>([]);
+  const [country, setCountry] = useState<{ country_name: string, state_name: string, city_name: string }[]>([]);
+  const [state, setState] = useState<{ country_name: string, state_name: string, city_name: string }[]>([]);
+  const [city, setCity] = useState<{ country_name: string, state_name: string, city_name: string }[]>([]);
   const [user, setUser] = useState<{
     email: string;
   }>();
@@ -229,56 +229,56 @@ export const OnboardCard = () => {
       if (
         userVal?.displayname === "" &&
         window.location.href !==
-          window.location.origin + "/onboarding?step=1" &&
+        window.location.origin + "/onboarding?step=1" &&
         step > 1
       ) {
         window.location.href = "/onboarding?step=1";
       } else if (
         userVal?.phone_no === "" &&
         window.location.href !==
-          window.location.origin + "/onboarding?step=2" &&
+        window.location.origin + "/onboarding?step=2" &&
         step > 2
       ) {
         window.location.href = "/onboarding?step=2";
       } else if (
         userVal?.country === "" &&
         window.location.href !==
-          window.location.origin + "/onboarding?step=3" &&
+        window.location.origin + "/onboarding?step=3" &&
         step > 3
       ) {
         window.location.href = "/onboarding?step=3";
       } else if (
         userVal?.state === "" &&
         window.location.href !==
-          window.location.origin + "/onboarding?step=4" &&
+        window.location.origin + "/onboarding?step=4" &&
         step > 4
       ) {
         window.location.href = "/onboarding?step=4";
       } else if (
         userVal?.city === "" &&
         window.location.href !==
-          window.location.origin + "/onboarding?step=5" &&
+        window.location.origin + "/onboarding?step=5" &&
         step > 5
       ) {
         window.location.href = "/onboarding?step=5";
       } else if (
         userVal?.pincode === "" &&
         window.location.href !==
-          window.location.origin + "/onboarding?step=6" &&
+        window.location.origin + "/onboarding?step=6" &&
         step > 6
       ) {
         window.location.href = "/onboarding?step=6";
       } else if (
         userVal?.standard === "" &&
         window.location.href !==
-          window.location.origin + "/onboarding?step=7" &&
+        window.location.origin + "/onboarding?step=7" &&
         step > 7
       ) {
         window.location.href = "/onboarding?step=7";
       } else if (
         userVal?.board === "" &&
         window.location.href !==
-          window.location.origin + "/onboarding?step=8" &&
+        window.location.origin + "/onboarding?step=8" &&
         step > 8
       ) {
         window.location.href = "/onboarding?step=8";
@@ -329,11 +329,11 @@ export const OnboardCard = () => {
   interface FormStep {
     title: string;
     subtitle: string;
-    comp: (() => JSX.Element) 
-        | ((data: {country_name: string, state_name: string, city_name: string}[]) => JSX.Element) 
+    comp: (() => JSX.Element)
+    | ((data: { country_name: string, state_name: string, city_name: string }[]) => JSX.Element)
   }
-  
-  
+
+
   const [selin] = useState<FormStep[]>([
     {
       title: "Hey, champ! What's your name?",
@@ -355,7 +355,7 @@ export const OnboardCard = () => {
     {
       title: "Please select your country",
       subtitle: "",
-      comp: (data) => (
+      comp: (data: { country_name: string; state_name: string; city_name: string }[]) => (
         <SelectArea
           name="Country"
           areas={data}
@@ -367,7 +367,7 @@ export const OnboardCard = () => {
     {
       title: "Please select your state",
       subtitle: "",
-      comp: (data) =>
+      comp: (data: { country_name: string; state_name: string; city_name: string }[]) =>
         country && (
           <SelectArea
             name="State"
@@ -380,7 +380,7 @@ export const OnboardCard = () => {
     {
       title: "Please select your city",
       subtitle: "",
-      comp: (data) => (
+      comp: (data: { country_name: string; state_name: string; city_name: string }[]) => (
         <SelectArea
           name="City"
           areas={data}
@@ -515,14 +515,14 @@ export const OnboardCard = () => {
             {selin?.[step - 1] &&
               selin[step - 1].comp(
                 step === 3
-                  ? country ??[]
+                  ? country ?? []
                   : step === 4
                     ? state
                     : step === 5
                       ? city
                       : []
               )}
-             
+
           </div>
         </>
         {/* )} */}
