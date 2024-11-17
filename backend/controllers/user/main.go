@@ -1057,7 +1057,7 @@ func GetAllResults(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
 	}
 
-	userIDInterface, exists := claims["id"]
+	userIDInterface, exists := claims["Id"]
 	if !exists {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
 	}
