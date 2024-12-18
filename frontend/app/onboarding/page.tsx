@@ -1,6 +1,7 @@
 "use client";
 
-import { OnboardCard } from "@/components/OnboardCard";
+// import { OnboardCard } from "@/components/OnboardCard";
+import OnboardCard from '@/components/onBoarding'
 import { Suspense } from "react";
 
 function Page() {

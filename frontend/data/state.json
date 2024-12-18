@@ -1,0 +1,389 @@
+{
+    "China": [
+        {
+            "state_name": "Anhui"
+        },
+        {
+            "state_name": "Aomen"
+        },
+        {
+            "state_name": "Beijing"
+        },
+        {
+            "state_name": "Beijing Shi"
+        },
+        {
+            "state_name": "Chongqing"
+        },
+        {
+            "state_name": "Fujian"
+        },
+        {
+            "state_name": "Gansu"
+        },
+        {
+            "state_name": "Guangdong"
+        },
+        {
+            "state_name": "Guangxi"
+        },
+        {
+            "state_name": "Guizhou"
+        },
+        {
+            "state_name": "Hainan"
+        },
+        {
+            "state_name": "Hebei"
+        },
+        {
+            "state_name": "Heilongjiang"
+        },
+        {
+            "state_name": "Henan"
+        },
+        {
+            "state_name": "Hubei"
+        },
+        {
+            "state_name": "Hunan"
+        },
+        {
+            "state_name": "Jiangsu"
+        },
+        {
+            "state_name": "Jiangxi"
+        },
+        {
+            "state_name": "Jilin"
+        },
+        {
+            "state_name": "Liaoning"
+        },
+        {
+            "state_name": "Nei Monggol"
+        },
+        {
+            "state_name": "Ningxia Hui"
+        },
+        {
+            "state_name": "Qinghai"
+        },
+        {
+            "state_name": "Shaanxi"
+        },
+        {
+            "state_name": "Shandong"
+        },
+        {
+            "state_name": "Shanghai"
+        },
+        {
+            "state_name": "Shanxi"
+        },
+        {
+            "state_name": "Sichuan"
+        },
+        {
+            "state_name": "Tianjin"
+        },
+        {
+            "state_name": "Xianggang"
+        },
+        {
+            "state_name": "Xinjiang"
+        },
+        {
+            "state_name": "Xizang"
+        },
+        {
+            "state_name": "Yunnan"
+        },
+        {
+            "state_name": "Zhejiang"
+        }
+    ],
+    "India": [
+        {
+            "state_name": "Andaman and Nicobar Islands"
+        },
+        {
+            "state_name": "Andhra Pradesh"
+        },
+        {
+            "state_name": "Arunachal Pradesh"
+        },
+        {
+            "state_name": "Assam"
+        },
+        {
+            "state_name": "Bihar"
+        },
+        {
+            "state_name": "Chandigarh"
+        },
+        {
+            "state_name": "Chhattisgarh"
+        },
+        {
+            "state_name": "Dadra and Nagar Haveli"
+        },
+        {
+            "state_name": "Daman and Diu"
+        },
+        {
+            "state_name": "Delhi"
+        },
+        {
+            "state_name": "Goa"
+        },
+        {
+            "state_name": "Gujarat"
+        },
+        {
+            "state_name": "Haryana"
+        },
+        {
+            "state_name": "Himachal Pradesh"
+        },
+        {
+            "state_name": "Jammu and Kashmir"
+        },
+        {
+            "state_name": "Jharkhand"
+        },
+        {
+            "state_name": "Karnataka"
+        },
+        {
+            "state_name": "Kerala"
+        },
+        {
+            "state_name": "Ladakh"
+        },
+        {
+            "state_name": "Lakshadweep"
+        },
+        {
+            "state_name": "Madhya Pradesh"
+        },
+        {
+            "state_name": "Maharashtra"
+        },
+        {
+            "state_name": "Manipur"
+        },
+        {
+            "state_name": "Meghalaya"
+        },
+        {
+            "state_name": "Mizoram"
+        },
+        {
+            "state_name": "Nagaland"
+        },
+        {
+            "state_name": "Narora"
+        },
+        {
+            "state_name": "Odisha"
+        },
+        {
+            "state_name": "Pondicherry"
+        },
+        {
+            "state_name": "Punjab"
+        },
+        {
+            "state_name": "Rajasthan"
+        },
+        {
+            "state_name": "Sikkim"
+        },
+        {
+            "state_name": "Tamil Nadu"
+        },
+        {
+            "state_name": "Telangana"
+        },
+        {
+            "state_name": "Tripura"
+        },
+        {
+            "state_name": "Uttar Pradesh"
+        },
+        {
+            "state_name": "Uttarakhand"
+        },
+        {
+            "state_name": "West Bengal"
+        }
+    ],
+    "United States": [
+        {
+            "state_name": "Alabama"
+        },
+        {
+            "state_name": "Alaska"
+        },
+        {
+            "state_name": "Arizona"
+        },
+        {
+            "state_name": "Arkansas"
+        },
+        {
+            "state_name": "California"
+        },
+        {
+            "state_name": "Colorado"
+        },
+        {
+            "state_name": "Connecticut"
+        },
+        {
+            "state_name": "Delaware"
+        },
+        {
+            "state_name": "District of Columbia"
+        },
+        {
+            "state_name": "Florida"
+        },
+        {
+            "state_name": "Georgia"
+        },
+        {
+            "state_name": "Hawaii"
+        },
+        {
+            "state_name": "Idaho"
+        },
+        {
+            "state_name": "Illinois"
+        },
+        {
+            "state_name": "Indiana"
+        },
+        {
+            "state_name": "Iowa"
+        },
+        {
+            "state_name": "Kansas"
+        },
+        {
+            "state_name": "Kentucky"
+        },
+        {
+            "state_name": "Louisiana"
+        },
+        {
+            "state_name": "Maine"
+        },
+        {
+            "state_name": "Maryland"
+        },
+        {
+            "state_name": "Massachusetts"
+        },
+        {
+            "state_name": "Michigan"
+        },
+        {
+            "state_name": "Minnesota"
+        },
+        {
+            "state_name": "Mississippi"
+        },
+        {
+            "state_name": "Missouri"
+        },
+        {
+            "state_name": "Montana"
+        },
+        {
+            "state_name": "Nebraska"
+        },
+        {
+            "state_name": "Nevada"
+        },
+        {
+            "state_name": "New Hampshire"
+        },
+        {
+            "state_name": "New Jersey"
+        },
+        {
+            "state_name": "New Mexico"
+        },
+        {
+            "state_name": "New York"
+        },
+        {
+            "state_name": "North Carolina"
+        },
+        {
+            "state_name": "North Dakota"
+        },
+        {
+            "state_name": "Ohio"
+        },
+        {
+            "state_name": "Oklahoma"
+        },
+        {
+            "state_name": "Ontario"
+        },
+        {
+            "state_name": "Oregon"
+        },
+        {
+            "state_name": "Pennsylvania"
+        },
+        {
+            "state_name": "Ramey"
+        },
+        {
+            "state_name": "Rhode Island"
+        },
+        {
+            "state_name": "South Carolina"
+        },
+        {
+            "state_name": "South Dakota"
+        },
+        {
+            "state_name": "Sublimity"
+        },
+        {
+            "state_name": "Tennessee"
+        },
+        {
+            "state_name": "Texas"
+        },
+        {
+            "state_name": "Trimble"
+        },
+        {
+            "state_name": "Utah"
+        },
+        {
+            "state_name": "Vermont"
+        },
+        {
+            "state_name": "Virginia"
+        },
+        {
+            "state_name": "Washington"
+        },
+        {
+            "state_name": "West Virginia"
+        },
+        {
+            "state_name": "Wisconsin"
+        },
+        {
+            "state_name": "Wyoming"
+        }
+    ]
+}
