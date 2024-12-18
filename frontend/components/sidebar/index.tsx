@@ -21,9 +21,9 @@ function Sidebar() {
             {/* Mobile Menu Button */}
             <button
                 onClick={toggleSidebar}
-                className="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 absolute"
+                className="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 absolute z-40"
             >
-                {isOpen ? <CloseIcon /> : <MenuIcon />}
+                <MenuIcon />
             </button>
 
             {/* Overlay for mobile */}

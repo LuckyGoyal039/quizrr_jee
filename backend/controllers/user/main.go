@@ -528,8 +528,25 @@ func SetPortfolioData(c *fiber.Ctx) error {
 }
 
 func GetNotesList(c *fiber.Ctx) error {
-	// Retrieve the user claims from the context
-	claims, ok := c.Locals("User").(jwt.MapClaims)
+	tokenStr := c.Get("Authorization")
+	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
+	if len(tokenStr) < 7 || tokenStr[:7] != "Bearer " {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing or invalid token"})
+	}
+	tokenStr = tokenStr[7:]
+
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token claims"})
 	}
