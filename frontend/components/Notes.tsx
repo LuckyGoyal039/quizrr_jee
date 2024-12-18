@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import SearchIcon from '@mui/icons-material/Search';
 
 interface Note {
   id?: string;
@@ -156,14 +157,33 @@ const Notes: React.FC = () => {
   }, [search, notes]);
 
   return (
-    <div className="p-4">
+    <>
       <div className="mb-4">
-        <h1 className="text-xl font-bold mb-2">Search Notes</h1>
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by topic or content"
-        />
+        <h1 className="text-xl font-bold mb-2 text-center">Search Notes</h1>
+        <div className='flex justify-end w-full my-5'>
+          <form className={`w-96`}>
+            <div className="relative block ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+              <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <SearchIcon />
+              </div>
+              <input
+                type="search"
+                id="default-search"
+                className="focus:outline-none focus:ring-0 w-[70%] bg-transparent text-md py-2"
+                placeholder='Search...'
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                required
+              />
+              <button
+                type="submit"
+                className={`text-white absolute end-2.5 bottom-1 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg text-sm px-4 py-1 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800`}
+              >
+                Search
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
       <div className="">
         <Dialog open={open} onOpenChange={setOpen}>
@@ -215,7 +235,7 @@ const Notes: React.FC = () => {
           )}
         </Dialog>
       </div>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {(search === "" ? notes : searchedNotes)?.length > 0 ? (
           (search === "" ? notes : searchedNotes).map((note) => (
             <Dialog key={note.id} open={editOpen} onOpenChange={setEditOpen}>
@@ -287,7 +307,7 @@ const Notes: React.FC = () => {
           <p className="text-center text-gray-500">No notes found</p>
         )}
       </div>
-    </div>
+    </>
   );
 };
 
