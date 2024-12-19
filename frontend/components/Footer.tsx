@@ -3,7 +3,7 @@ import Link from "next/link";
 
 function Footer() {
   return (
-    <div className="flex flex-col items-center my-16">
+    <div className="flex flex-col items-center my-16 w-full overflow-hidden">
       <Image
         width={80}
         height={32}
