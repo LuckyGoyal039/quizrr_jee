@@ -2,7 +2,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import Image from "next/image";
 
-function TestimonialCard({ name, percentile, text, video }: {name: string, percentile: string, text: string, video: string}) {
+function TestimonialCard({ name, percentile, text, video }: { name: string, percentile: string, text: string, video: string }) {
   const regex = /\/embed\/([a-zA-Z0-9_-]+)/;
   const val = video.match(regex)?.[1];
   return (
@@ -33,7 +33,7 @@ function TestimonialCard({ name, percentile, text, video }: {name: string, perce
                 // height="315"
                 src={video}
                 title="YouTube video player"
-              
+
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 referrerPolicy="strict-origin-when-cross-origin"
@@ -44,24 +44,23 @@ function TestimonialCard({ name, percentile, text, video }: {name: string, perce
         </Dialog>
       </div>
       <div className="mt-2">
-        <p className="text-[#869ab8] tracking-wide text-lg">
+        <p className="text-[#869ab8] tracking-wide">
           {text}
         </p>
       </div>
       <Separator className="my-6 opacity-50" />
-      <div className="flex justify-between">
-        <div className="">
-          <h1 className="text-lg font-bold tracking-wide">{name}</h1>
-          <div className="flex gap-1">
-            <p>Found it </p>
-            <p className="text-[#df4759] relative after:content-[''] after:absolute after:-bottom-[7px] after:left-0 after:w-full after:h-[16px] after:bg-no-repeat after:bg-contain after:bg-[url('https://www.mathongo.com/public/brand/quizrr/assets/img/underline_red.svg')]">
-              Most Relevant
-            </p>
-          </div>
-        </div>
-        <div className="">
-          <p className="text-[#df4759] uppercase font-bold tracking-widest">
+      <div className="flex justify-between flex-col lg:flex-row lg:justify-between w-full">
+        <div className="w-full flex text-sm lg:text-lg justify-between lg:justify-start lg:gap-4">
+          <h1 className="font-bold tracking-wide overflow-ellipsis line-clamp-1 w-36">{name}</h1>
+          <p className="text-[#df4759] uppercase font-bold text-[12px] md:text-lg">
             {percentile}{' '} percentile
+          </p>
+
+        </div>
+        <div className="flex gap-5 w-full">
+          <p className="">Found it </p>
+          <p className="text-red-500 relative after:content-[''] after:absolute after:-bottom-[6px] after:left-0 after:w-full after:h-[16px] after:bg-no-repeat after:bg-contain after:bg-[url('https://www.mathongo.com/public/brand/quizrr/assets/img/underline_red.svg')] text-[12px] lg:text-lg">
+            Most Relevant
           </p>
         </div>
       </div>

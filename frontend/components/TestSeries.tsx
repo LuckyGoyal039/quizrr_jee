@@ -4,14 +4,14 @@ import { Badge } from "./ui/badge";
 
 function TestSeries() {
   return (
-    <div id="testseries">
+    <div id="testseries" className="w-full overflow-hidden lg:px-48">
       <div className="flex flex-col items-center my-8">
         <Badge className="text-[#df4759] bg-[rgb(223,71,89,0.1)] uppercase font-extrabold py-0 px-3 mb-2">
           Our Packs
         </Badge>
-        <h1 className="text-6xl font-bold">Our Test Series</h1>
+        <h1 className="text-3xl lg:text-6xl font-bold">Our Test Series</h1>
       </div>
-      <div className="grid grid-cols-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 justify-items-center items-center gap-4">
         <Link href={"/"}>
           <TestSeriesCard
             avatar={"https://cdn.quizrr.in/web-assets/icons/exams/jee-main.png"}

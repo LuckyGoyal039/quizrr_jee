@@ -12,9 +12,9 @@ function Hero() {
       <div className="flex justify-start w-full bg-[#f9fbfd]">
         {/* <div className=" w-[100vw] bg-no-repeat bg-[url('https://www.mathongo.com/public/brand/quizrr/assets/home-hero.jpg')] py-48"> */}
         <div className="flex justify-center bg-no-repeat bg-cover bg-[url('https://www.mathongo.com/public/brand/quizrr/assets/home-hero.jpg')] py-48 w-full">
-          <div className="w-[1024px]">
-            <div className="mb-6 max-w-2xl">
-              <h1 className="text-5xl font-bold mb-4 text-white">
+          <div className="w-full px-10 lg:px-[17rem]">
+            <div className="flex flex-col gap-4">
+              <h1 className="text-3xl font-bold text-white md:w-[653px] md:text-5xl">
                 Prepare with India&apos;s Most Trusted Test Series for
                 <span className="block text-yellow-300">
                   <Typewriter
@@ -30,15 +30,13 @@ function Hero() {
                   />
                 </span>
               </h1>
-              <p className="text-white">
+              <p className="text-white md:w-[700px]">
                 Crack upcoming IIT JEE Main & Advanced and other competitive
                 exams with test series designed according to latest pattern of
                 exams!
               </p>
-            </div>
-            <div className="">
               <Link href={"/auth/login"}>
-                <Button className="bg-blue-500">Explore Test Series</Button>
+                <Button className="bg-blue-500 py-6 md:py-7 md:text-xl">Explore Test Series</Button>
               </Link>
             </div>
           </div>
