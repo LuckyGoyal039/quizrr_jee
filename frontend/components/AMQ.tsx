@@ -3,9 +3,9 @@ import { Button } from "./ui/button";
 
 function AMQ() {
   return (
-    <div className="flex flex-col items-center">
-      <h1 className="text-[44px] font-bold mb-4">Any More Questions?</h1>
-      <p className="text-lg text-[#869ab8] font-normal mb-6">
+    <div className="flex flex-col items-center w-full overflow-hidden">
+      <h1 className="text-xl md:text-[44px] font-bold mb-4">Any More Questions?</h1>
+      <p className="text-lg text-[#869ab8] font-normal mb-6 px-5 text-center">
         You can contact us through email or chat with us.
       </p>
       <Link
