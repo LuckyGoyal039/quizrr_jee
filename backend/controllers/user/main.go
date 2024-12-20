@@ -295,7 +295,7 @@ func GetAllProfileData(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
 	}
 
-	userIDInterface, exists := claims["id"]
+	userIDInterface, exists := claims["Id"]
 	if !exists {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
 	}
@@ -383,7 +383,7 @@ func SetPortfolioData(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token claims"})
 	}
 
-	userIDInterface, exists := claims["id"]
+	userIDInterface, exists := claims["Id"]
 	if !exists {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
 	}
