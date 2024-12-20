@@ -249,6 +249,7 @@ const boards = [
 ];
 
 export const Step8 = ({ value, onChange }: Step8Props) => {
+    console.log(value)
     return (
         <div className="flex flex-col items-center mt-4 text-center">
             <h1 className="text-xl pb-2">Please select your Class 12th Board</h1>
