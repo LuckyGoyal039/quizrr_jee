@@ -9,9 +9,9 @@ interface Step1Props {
 
 export const Step1 = ({ value, onChange }: Step1Props) => {
     return (
-        <div className="flex flex-col items-center mt-4">
-            <h1 className="text-xl pb-2">Hey, champ! What's your name?</h1>
-            <p>Don't worry. You can change it later.</p>
+        <div className="flex flex-col items-center mt-4 text-center">
+            <h1 className="text-xl pb-2">Hey, champ! What&apos;s your name?</h1>
+            <p>Don&apos;t worry. You can change it later.</p>
             <div className="mt-3 w-full flex justify-center">
                 <Input
                     type="text"
@@ -30,10 +30,11 @@ interface Step2Props {
 }
 
 export const Step2 = ({ value, onChange }: Step2Props) => {
+    console.log(value);
     return (
-        <div className="flex flex-col items-center mt-4">
-            <h1 className="text-xl pb-2">What's your mobile number?</h1>
-            <p>We won't spam you. You will receive only your test related information.</p>
+        <div className="flex flex-col items-center mt-4 text-center">
+            <h1 className="text-xl pb-2">What&apos;s your mobile number?</h1>
+            <p>We won&apos;t spam you. You will receive only your test related information.</p>
             <div className="mt-3 w-full flex justify-center">
                 <PhoneInput onChange={onChange} />
             </div>
@@ -41,21 +42,23 @@ export const Step2 = ({ value, onChange }: Step2Props) => {
     );
 };
 
-interface Area {
-    country_name: string;
-    state_name: string;
-    city_name: string;
+
+export interface Country {
+    "country_name": string;
+    "country_short_name": string;
+    "country_phone_code": number;
 }
 
 interface Step3Props {
     value: string;
     onChange: (value: string) => void;
-    countries: Area[];
+    countries: Country[];
 }
 
 export const Step3 = ({ value, onChange, countries }: Step3Props) => {
+    console.log(value)
     return (
-        <div className="flex flex-col items-center mt-4">
+        <div className="flex flex-col items-center mt-4 text-center">
             <h1 className="text-xl pb-2">Please select your country</h1>
             <div className="mt-3 w-full flex justify-center">
                 <SelectArea
@@ -69,21 +72,21 @@ export const Step3 = ({ value, onChange, countries }: Step3Props) => {
     );
 };
 
-interface Area {
-    country_name: string;
+export interface State {
     state_name: string;
-    city_name: string;
-}
+};
 
 interface Step4Props {
     value: string;
     onChange: (value: string) => void;
-    states: Area[];
+    states: State[];
 }
 
+
 export const Step4 = ({ value, onChange, states }: Step4Props) => {
+    console.log(value)
     return (
-        <div className="flex flex-col items-center mt-4">
+        <div className="flex flex-col items-center mt-4 text-center">
             <h1 className="text-xl pb-2">Please select your state</h1>
             <div className="mt-3 w-full flex justify-center">
                 <SelectArea
@@ -97,21 +100,26 @@ export const Step4 = ({ value, onChange, states }: Step4Props) => {
     );
 };
 
-interface Area {
-    country_name: string;
-    state_name: string;
+// interface Area {
+//     country_name: string;
+//     state_name: string;
+//     city_name: string;
+// }
+
+export interface Cities {
     city_name: string;
-}
+};
 
 interface Step5Props {
     value: string;
     onChange: (value: string) => void;
-    cities: Area[];
+    cities: Cities[];
 }
 
 export const Step5 = ({ value, onChange, cities }: Step5Props) => {
+    console.log(value)
     return (
-        <div className="flex flex-col items-center mt-4">
+        <div className="flex flex-col items-center mt-4 text-center">
             <h1 className="text-xl pb-2">Please select your city</h1>
             <div className="mt-3 w-full flex justify-center">
                 <SelectArea
@@ -132,7 +140,7 @@ interface Step6Props {
 
 export const Step6 = ({ value, onChange }: Step6Props) => {
     return (
-        <div className="flex flex-col items-center mt-4">
+        <div className="flex flex-col items-center mt-4 text-center">
             <h1 className="text-xl pb-2">Enter your PIN code</h1>
             <div className="mt-3 w-full flex justify-center">
                 <Input
@@ -154,29 +162,29 @@ interface Step7Props {
 
 const SelectStandard = ({ setVal }: { setVal: (value: string) => void }) => {
     return (
-        <div className="flex justify-center gap-4">
+        <div className="flex max-sm:flex-col justify-center flex-wrap gap-4">
             <Input
                 value="Class 11"
                 readOnly
-                className="hover:border-black"
+                className="hover:border-black w-fit"
                 onClick={(e) => setVal((e.target as HTMLInputElement).value)}
             />
             <Input
                 value="Class 12"
                 readOnly
-                className="hover:border-black"
+                className="hover:border-black w-fit"
                 onClick={(e) => setVal((e.target as HTMLInputElement).value)}
             />
             <Input
                 value="First Time Dropper"
                 readOnly
-                className="hover:border-black"
+                className="hover:border-black w-fit"
                 onClick={(e) => setVal((e.target as HTMLInputElement).value)}
             />
             <Input
                 value="Second Time Dropper"
                 readOnly
-                className="hover:border-black"
+                className="hover:border-black w-fit"
                 onClick={(e) => setVal((e.target as HTMLInputElement).value)}
             />
         </div>
@@ -184,8 +192,9 @@ const SelectStandard = ({ setVal }: { setVal: (value: string) => void }) => {
 };
 
 export const Step7 = ({ value, onChange }: Step7Props) => {
+    console.log(value)
     return (
-        <div className="flex flex-col items-center mt-4">
+        <div className="flex flex-col items-center mt-4 text-center">
             <h1 className="text-xl pb-2">In which class are you currently in?</h1>
             <div className="mt-3 w-full flex justify-center">
                 <SelectStandard setVal={onChange} />
@@ -240,12 +249,13 @@ const boards = [
 ];
 
 export const Step8 = ({ value, onChange }: Step8Props) => {
+    console.log(value);
     return (
-        <div className="flex flex-col items-center mt-4">
+        <div className="flex flex-col items-center mt-4 text-center">
             <h1 className="text-xl pb-2">Please select your Class 12th Board</h1>
             <div className="mt-3 w-full flex justify-center">
                 <Select onValueChange={onChange}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-[220px]">
                         <SelectValue placeholder="Select Board" />
                     </SelectTrigger>
                     <SelectContent>
@@ -262,3 +272,4 @@ export const Step8 = ({ value, onChange }: Step8Props) => {
         </div>
     );
 };
+

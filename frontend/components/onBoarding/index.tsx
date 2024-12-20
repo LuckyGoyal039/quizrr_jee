@@ -8,9 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import Loader from "../loader/index";
 import SmallLoader from "../loader/SmallLoader";
 import { Step1, Step2, Step3, Step4, Step5, Step6, Step7, Step8 } from "./steps";
-import countryData from "../../data/country.json";
-import statesData from "../../data/state.json";
-import cityData from "../../data/city.json";
+import countryData from "../../data/countries.json";
+import statesData from "../../data/states.json";
+import cityData from "../../data/cities.json";
 
 export interface User {
     email: string;
@@ -56,6 +56,7 @@ const OnboardCard = () => {
     ];
     const [filteredStates, setFilteredStates] = useState<Area[]>([]);
     const [filteredCities, setFilteredCities] = useState<Area[]>([]);
+    console.log(filteredCities, filteredStates)
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -91,7 +92,7 @@ const OnboardCard = () => {
         };
 
         fetchUser();
-    }, [router, toast]);
+    }, [params]);
 
     useEffect(() => {
         const currentStep = Number(params.get("step")) || 1;
@@ -137,7 +138,7 @@ const OnboardCard = () => {
     const fetchCity = async (selectedState: string) => {
         setNextStepLoading(true);
         try {
-            const country = user?.country && typeof user.country === "string" ? user.country : user?.country?.String || "";
+            const country = user?.country && typeof user.country === "string" ? user.country : "";
             if (cities.hasOwnProperty(selectedState)) {
                 const filtered = cities[selectedState].map((city) => ({
                     country_name: country,
@@ -165,6 +166,7 @@ const OnboardCard = () => {
             setNextStepLoading(true);
             const SERVER_BASE_URL = process.env.NEXT_PUBLIC_SERVER_BASE_URL;
             const data = new URLSearchParams({ [userKeys[step - 1]]: val });
+            console.log('userval', val, data)
 
             await axios.patch(`${SERVER_BASE_URL}/user/profile`, data, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -191,6 +193,7 @@ const OnboardCard = () => {
     const renderStep = () => {
         const mappedStates = states[user?.country as string] || [];
         const mappedCities = cities[user?.state as string] || [];
+        console.log('user', user, mappedStates, mappedCities);
         switch (step) {
             case 1:
                 return <Step1 value={val} onChange={setVal} />;
@@ -216,7 +219,7 @@ const OnboardCard = () => {
     if (loading) return <Loader />;
 
     return (
-        <div className="flex flex-col items-center border relative p-6 w-[50%]">
+        <div className="flex flex-col items-center border relative p-6 w-[50%] max-sm:w-[80%]">
             <div className="-mt-16">
                 <div className="bg-[#bf360c] w-fit py-4 px-7 rounded-[100%]">
                     <h1 className="text-white text-5xl">
