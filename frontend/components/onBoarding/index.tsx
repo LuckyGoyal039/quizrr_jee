@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "../ui/button";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import Loader from "../loader/index";
@@ -156,7 +156,8 @@ const OnboardCard = () => {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault()
         if (!val) {
             toast({ variant: "destructive", title: "Value cannot be empty" });
             return;
@@ -227,12 +228,14 @@ const OnboardCard = () => {
                     </h1>
                 </div>
             </div>
-            {renderStep()}
-            <div className="mt-4">
-                <Button onClick={handleSubmit} className="w-24">
-                    {nextStepLoading ? <SmallLoader /> : "Save & Next"}
-                </Button>
-            </div>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                {renderStep()}
+                <div className="flex justify-center">
+                    <Button type='submit' className="w-24">
+                        {nextStepLoading ? <SmallLoader /> : "Save & Next"}
+                    </Button>
+                </div>
+            </form>
         </div>
     );
 };

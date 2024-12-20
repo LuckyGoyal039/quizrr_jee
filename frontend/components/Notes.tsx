@@ -60,7 +60,7 @@ const Notes: React.FC = () => {
         },
       });
       console.log("del", id, currNote);
-      setNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));
+      setNotes((prevNotes) => prevNotes?.filter((note) => note.id !== id));
       getNotes();
     } catch (error) {
       console.error("Error deleting note:", error);

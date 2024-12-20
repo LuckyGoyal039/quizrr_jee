@@ -249,16 +249,15 @@ const boards = [
 ];
 
 export const Step8 = ({ value, onChange }: Step8Props) => {
-    console.log(value);
     return (
         <div className="flex flex-col items-center mt-4 text-center">
             <h1 className="text-xl pb-2">Please select your Class 12th Board</h1>
             <div className="mt-3 w-full flex justify-center">
                 <Select onValueChange={onChange}>
-                    <SelectTrigger className="w-[220px]">
+                    <SelectTrigger className="w-full max-w-[300px]">
                         <SelectValue placeholder="Select Board" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[200px] overflow-auto z-50 max-w-64 md:max-w-[300px]">
                         <SelectGroup>
                             {boards.map((board, index) => (
                                 <SelectItem value={board} key={index}>

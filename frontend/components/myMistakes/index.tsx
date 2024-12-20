@@ -35,9 +35,9 @@ const MyMistakes: React.FC = () => {
     const filteredResults = useMemo(() => {
         if (!search.trim()) {
         }
-        return results.filter((result: ResultsSchema) =>
+        return results?.filter((result: ResultsSchema) =>
             result.test_name.toLowerCase().includes(search.toLowerCase())
-        );
+        ) || [];
     }, [search, results]);
 
 
