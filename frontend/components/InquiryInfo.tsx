@@ -5,9 +5,9 @@ import Link from "next/link";
 
 function InquiryInfo() {
   return (
-    <div className="flex justify-center py-20">
-      <div className="grid grid-cols-2 max-w-5xl" id="institute">
-        <div className="">
+    <div className="flex justify-center py-20 w-full overflow-hidden">
+      <div className="flex flex-col-reverse md:flex-row max-w-5xl" id="institute">
+        <div className="px-6">
           <div className="space-y-4">
             <h1 className="text-[44px]  leading-[52px]">
               Need the{" "}

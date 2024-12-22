@@ -46,15 +46,15 @@ const Page: React.FC = () => {
     <div className="flex h-screen bg-gray-100">
       <Sidebar />
       <main className="flex-1 p-4 sm:ml-48 overflow-y-auto">
-        <div className="grid place-items-center h-full">
+        <div className="grid sm:place-items-center max-sm:mt-8 h-full">
           {profile && (
-            <div className="w-[700px] mx-auto bg-white shadow-md rounded-lg overflow-hidden">
+            <div className="w-[700px] mx-auto bg-white shadow-md rounded-lg overflow-hidden max-sm:w-full">
               <div className="p-6">
-                <div className="flex items-center">
+                <div className="flex items-center max-sm:flex-col">
                   <div className="w-24 h-24 rounded-full bg-red-600 text-white flex items-center justify-center text-5xl font-bold">
                     {profile.email[0].toUpperCase()}
                   </div>
-                  <div className="ml-6 gap-6">
+                  <div className="sm:ml-6 gap-6 max-sm:text-center">
                     <h2 className="text-xl font-bold">{profile.displayname}</h2>
                     <p className="text-gray-500">{profile.email}</p>
                     <p className="text-gray-500">{profile.phone_no}</p>
@@ -76,14 +76,14 @@ const Page: React.FC = () => {
                   <span className="text-gray-500">Current Status</span>
                   <span className="text-gray-500">{profile.standard}</span>
                 </div> */}
-                <div className="flex justify-between py-2">
-                  <span className="text-gray-500 mr-4">Board</span>
-                  <span className="text-gray-800 font-medium">
+                <div className="flex sm:justify-between py-2">
+                  <span className="text-gray-500 mr-4">Board: </span>
+                  <span className="text-gray-800 font-medium text-ellipsis max-sm:w-[250px]">
                     {profile.board}
                   </span>
                 </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-gray-500 mr-4">Class</span>
+                <div className="flex sm:justify-between py-2">
+                  <span className="text-gray-500 mr-4">Status: </span>
                   <span className="text-gray-800 font-medium">
                     {profile.standard}
                   </span>
@@ -98,3 +98,5 @@ const Page: React.FC = () => {
 };
 
 export default Page;
+
+

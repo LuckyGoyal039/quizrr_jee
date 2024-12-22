@@ -295,7 +295,7 @@ func GetAllProfileData(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
 	}
 
-	userIDInterface, exists := claims["id"]
+	userIDInterface, exists := claims["Id"]
 	if !exists {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
 	}
@@ -383,7 +383,7 @@ func SetPortfolioData(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token claims"})
 	}
 
-	userIDInterface, exists := claims["id"]
+	userIDInterface, exists := claims["Id"]
 	if !exists {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
 	}
@@ -528,8 +528,25 @@ func SetPortfolioData(c *fiber.Ctx) error {
 }
 
 func GetNotesList(c *fiber.Ctx) error {
-	// Retrieve the user claims from the context
-	claims, ok := c.Locals("User").(jwt.MapClaims)
+	tokenStr := c.Get("Authorization")
+	jwtSecret := []byte(os.Getenv("JWT_SECRET"))
+	if len(tokenStr) < 7 || tokenStr[:7] != "Bearer " {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing or invalid token"})
+	}
+	tokenStr = tokenStr[7:]
+
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token claims"})
 	}
@@ -1057,7 +1074,7 @@ func GetAllResults(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
 	}
 
-	userIDInterface, exists := claims["id"]
+	userIDInterface, exists := claims["Id"]
 	if !exists {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User ID not found in token"})
 	}
